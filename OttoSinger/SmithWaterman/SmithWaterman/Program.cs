@@ -13,12 +13,22 @@ namespace SmithWaterman
         static void Main(string[] args)
         {
             string[] bothFiles = ReadFiles();
-            PrintFiles(bothFiles);
-            ParseFile(bothFiles[0]);
-            ParseFile(bothFiles[1]);
+            //PrintFiles(bothFiles);
+
+            string firstGenome = ParseFile(bothFiles[0]);
+            string secondGenome = ParseFile(bothFiles[1]);
+
+            PrintGenome(firstGenome);
+            Console.WriteLine("length of 1st genome main programme: " + firstGenome.Length);
+            //PrintNucleotidesOfGenome(firstGenome);
+
+            PrintGenome(secondGenome);
+            Console.WriteLine("length of 2nd genome main programme: " + secondGenome.Length);
+            //PrintNucleotidesOfGenome(secondGenome);
 
 
-
+            int[,] InitialMatrix = InitiateMatrix(firstGenome, secondGenome);
+            PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
 
             Console.ReadKey();
@@ -42,20 +52,19 @@ namespace SmithWaterman
             }
         }
 
-        public static void ParseFile(string MyFile)
+        public static string ParseFile(string MyFile)
         {
-            //Console.WriteLine("Myfile u parse metodi tj genom je : " + MyFile);
+            //Console.WriteLine("Myfile in ParseFile method is : \n" + MyFile);
 
             string genome = RemoveFirstLinesFromFile(MyFile, 1);
+
+            //int numberOfLinesInGenomeFile = NumberOfLinesInGenome(genome);
+            //PrintStatisticsOfGenome(genome, numberOfLinesInGenomeFile);
+
+
+            genome = RemoveSpacesFromGenome(genome);
             
-            int genomeLength = CalculateGenomeLength(genome);
-
-            genome = Regex.Replace(genome, @"\s+", string.Empty);
-
-            PrintGenome(genome);
-            PrintStatisticsOfGenome(genome, genomeLength);
-            //PrintNucleotidesOfGenome(genome);
-
+            return genome;
         }
 
         public static string RemoveFirstLinesFromFile(string text, int linesCount)
@@ -64,7 +73,13 @@ namespace SmithWaterman
             return string.Join(Environment.NewLine, lines.ToArray());
         }
 
-        public static int CalculateGenomeLength(string genome)
+        public static string RemoveSpacesFromGenome(string genome)
+        {
+            genome = Regex.Replace(genome, @"\s+", string.Empty);
+            return genome;
+        }
+
+        public static int NumberOfLinesInGenome(string genome)
         {
             var lines = Regex.Split(genome, "\r\n|\r|\n");
             return lines.Length;
@@ -86,18 +101,67 @@ namespace SmithWaterman
 
         public static void PrintGenome(string genome)
         {
-            Console.WriteLine("Genom in its final form: \n" + genome);
+            Console.WriteLine("Genome in its final form: \n" + genome);
         }
 
-        public static string InitiateMatrix(string firstGenome, string secondGenome)
+        public static int[,] InitiateMatrix(string firstGenome, string secondGenome)
         {
+            int lengthOfFirstGenome = firstGenome.Length;
+            int lengthOfSecondGenome = secondGenome.Length;
+            int[,] InitialMatrix = new int[lengthOfSecondGenome, lengthOfFirstGenome]; 
+
+            for (int i = 0; i < lengthOfSecondGenome; i++)
+            {
+                for (int j = 0; j < lengthOfFirstGenome; j++) 
+                {
+                    InitialMatrix[i, j] = 0;
+                }
+            }
+
+            return InitialMatrix;
+        }
 
 
+        public static void PrintMatrix(int lengthOfFirstGenome, int lengthOfSecondGenome, int[,] InitialMatrix, string firstGenome, string SecondGenome)
+        {
+            Console.WriteLine("\n \n Genome Matrix: \n");
 
-            //TU SAM STAO #######################################################
+            Console.Write("    " + "    ");
+            for (int i = 0; i < lengthOfFirstGenome; i++)
+            {
+                Console.Write(i + "   ");
+            }
+            Console.WriteLine();
+            Console.Write("    " + "    ");
+            for (int i = 0; i < lengthOfFirstGenome; i++)
+            {
+                if (i < 10)
+                {
+                    Console.Write(firstGenome[i] + "   ");
+                }
+                else
+                {
+                    Console.Write(firstGenome[i] + "    ");
+                }
 
-
-            return "";
+            }
+            Console.WriteLine();
+            
+            for (int i = 0; i < lengthOfSecondGenome; i++) 
+            {
+                if (i < 10)
+                    Console.Write(i + "   " + SecondGenome[i] + "   ");
+                else
+                    Console.Write(i + "  " + SecondGenome[i] + "   ");
+                for (int j = 0; j < lengthOfFirstGenome; j++)
+                {
+                    if (j < 10)
+                        Console.Write(InitialMatrix[i, j] + "   ");
+                    else
+                        Console.Write(InitialMatrix[i, j] + "    ");
+                }
+                Console.WriteLine();
+            }
         }
 
 
@@ -105,9 +169,6 @@ namespace SmithWaterman
 
 
 
-
-
-        
 
     }//class program
 }//namespace
