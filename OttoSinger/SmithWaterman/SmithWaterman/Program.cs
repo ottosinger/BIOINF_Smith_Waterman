@@ -31,9 +31,12 @@ namespace SmithWaterman
 
             PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
-            //CalculateMatrix(firstGenome, secondGenome, InitialMatrix);
+            int[] maxKnowledge = CalculateMatrix(firstGenome, secondGenome, InitialMatrix);
+            int maxScore = maxKnowledge[0];
+            int maxI = maxKnowledge[1];
+            int maxJ = maxKnowledge[2];
 
-            //PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
+            PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
             Console.ReadKey();
         }
@@ -116,9 +119,9 @@ namespace SmithWaterman
             int lengthOfSecondGenome = secondGenome.Length;
             int[,] InitialMatrix = new int[lengthOfSecondGenome+1, lengthOfFirstGenome+1];  //dodano +1 na size
 
-            for (int i = 0; i < lengthOfSecondGenome+1; i++)//################################################33dodano +1 na gornju granicu
+            for (int i = 0; i < lengthOfSecondGenome+1; i++)
             {
-                for (int j = 0; j < lengthOfFirstGenome+1; j++) //################################################33dodano +1 na gornju granicu
+                for (int j = 0; j < lengthOfFirstGenome+1; j++) 
                 {
                     InitialMatrix[i, j] = 0;
                 }
@@ -165,7 +168,7 @@ namespace SmithWaterman
 
 
 
-        public static int[,] CalculateMatrix(string firstGenome, string secondGenome, int[,] Matrix)
+        public static int[] CalculateMatrix(string firstGenome, string secondGenome, int[,] Matrix)
         {
             int lengthOfFirstGenome = firstGenome.Length;
             int lengthOfSecondGenome = secondGenome.Length;
@@ -173,23 +176,23 @@ namespace SmithWaterman
             int maxScore = 0;
             int maxI = 0;
             int maxJ = 0;
-            
-            for (int i = 0; i < lengthOfSecondGenome; i++)
+
+            for (int i = 1; i < lengthOfSecondGenome+1; i++)
             {
-                for (int j = 0; j < lengthOfFirstGenome; j++)
+                for (int j = 1; j < lengthOfFirstGenome+1; j++)
                 {
                     int score = CalculateScore(Matrix, i, j, firstGenome, secondGenome);
                     if (score > maxScore)
                     {
                         maxScore = score;
-                        maxI = i;
-                        maxJ = j;
+                        maxI = i-1;
+                        maxJ = j-1;
                     }
                     Matrix[i,j] = score;
                 }
             }
-
-            return Matrix;
+            int[] maxKnowledge = { maxScore, maxI, maxJ };
+            return maxKnowledge;
         }
 
 
@@ -202,7 +205,7 @@ namespace SmithWaterman
             int deletion = -10;
             //int weight = 0;
 
-            if (firstGenome[i] == secondGenome[j])
+            if (firstGenome[j-1] == secondGenome[i-1])
             {
                 similarity = match;
             }
