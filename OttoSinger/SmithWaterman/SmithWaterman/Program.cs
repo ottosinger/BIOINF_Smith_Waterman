@@ -31,9 +31,9 @@ namespace SmithWaterman
 
             PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
-            CalculateMatrix(firstGenome, secondGenome, InitialMatrix);
+            //CalculateMatrix(firstGenome, secondGenome, InitialMatrix);
 
-            PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
+            //PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
             Console.ReadKey();
         }
@@ -114,11 +114,11 @@ namespace SmithWaterman
         {
             int lengthOfFirstGenome = firstGenome.Length;
             int lengthOfSecondGenome = secondGenome.Length;
-            int[,] InitialMatrix = new int[lengthOfSecondGenome, lengthOfFirstGenome]; 
+            int[,] InitialMatrix = new int[lengthOfSecondGenome+1, lengthOfFirstGenome+1];  //dodano +1 na size
 
-            for (int i = 0; i < lengthOfSecondGenome; i++)
+            for (int i = 0; i < lengthOfSecondGenome+1; i++)//################################################33dodano +1 na gornju granicu
             {
-                for (int j = 0; j < lengthOfFirstGenome; j++) 
+                for (int j = 0; j < lengthOfFirstGenome+1; j++) //################################################33dodano +1 na gornju granicu
                 {
                     InitialMatrix[i, j] = 0;
                 }
@@ -130,58 +130,34 @@ namespace SmithWaterman
         public static void PrintMatrix(int lengthOfFirstGenome, int lengthOfSecondGenome, int[,] Matrix, string firstGenome, string SecondGenome)
         {
             Console.WriteLine("\n \nGenome Matrix: \n");
-
-            Console.Write("    " + "    ");
+            
+            Console.Write("               ");
             for (int i = 0; i < lengthOfFirstGenome; i++)
             {
-                Console.Write(i + "   ");
-            }
-            Console.WriteLine();
-            Console.Write("    " + "    ");
-            for (int i = 0; i < lengthOfFirstGenome; i++)
-            {
-                if (i < 10)
-                {
-                    Console.Write(firstGenome[i] + "   ");
-                }
-                else
-                {
-                    Console.Write(firstGenome[i] + "    ");
-                }
-
+                Console.Write(i.ToString().PadRight(5));
             }
             Console.WriteLine();
             
-            for (int i = 0; i < lengthOfSecondGenome; i++) 
+            Console.Write("               ");
+            for (int i = 0; i < lengthOfFirstGenome; i++)
             {
-                if (i < 10)
-                    Console.Write(i + "   " + SecondGenome[i] + "   ");
-                else
-                    Console.Write(i + "  " + SecondGenome[i] + "   ");
-                for (int j = 0; j < lengthOfFirstGenome; j++)
+                Console.Write(firstGenome[i].ToString().PadRight(5));
+            }
+            Console.WriteLine();
+            
+            for (int i = 0; i < lengthOfSecondGenome+1; i++) 
+            {
+                for (int j = 0; j < lengthOfFirstGenome+1; j++)
                 {
-                    if (j < 10)
+                    if (j == 0 && i == 0)
                     {
-                        if (Matrix[i, j] < 10)
-                        {
-                            Console.Write(Matrix[i, j] + "   ");
-                        }
-                        else
-                        {
-                            Console.Write(Matrix[i, j] + "  ");
-                        } 
+                        Console.Write("          ");
                     }
-                    else
+                    if (j == 0 && i > 0)
                     {
-                        if (Matrix[i, j] < 10)
-                        {
-                            Console.Write(Matrix[i, j] + "    ");
-                        }
-                        else
-                        {
-                            Console.Write(Matrix[i, j] + "   ");
-                        }
+                        Console.Write((i-1).ToString().PadRight(5) + SecondGenome[i-1].ToString().PadRight(5));
                     }
+                    Console.Write(Matrix[i, j].ToString().PadRight(5));
                 }
                 Console.WriteLine();
             }
@@ -221,10 +197,10 @@ namespace SmithWaterman
         {
             int similarity = 0;
             int match = 10;
-            int mismatch = 0;
-            int insertion = 7;
-            int deletion = 6;
-            int weight = 0;
+            int mismatch = -9;
+            int insertion = -10;
+            int deletion = -10;
+            //int weight = 0;
 
             if (firstGenome[i] == secondGenome[j])
             {
@@ -239,11 +215,16 @@ namespace SmithWaterman
             int upValue = Matrix[i - 1, j] + insertion;//NISAM SIGURAN KOJI JE INSERTION A KOJI DELETION
             int leftValue = Matrix[i, j - 1] + deletion;//NISAM SIGURAN KOJI JE INSERTION A KOJI DELETION
 
-            //return max(0, diagonalValue, upValue, leftValue);//IMPLEMENTIRAJ MAKSIMALNU FUNKCIJU ZA 4 PARAMETRA
-            return 0;
+            int score = CalculateMaximum(0, diagonalValue, upValue, leftValue);//IMPLEMENTIRAJ MAKSIMALNU FUNKCIJU ZA 4 PARAMETRA
+            return score;
         }
 
 
+
+        public static int CalculateMaximum(int zero, int diagonalValue, int upValue, int leftValue)
+        {
+            return Math.Max(zero, Math.Max(diagonalValue, Math.Max(upValue, leftValue)));
+        }
 
 
 
