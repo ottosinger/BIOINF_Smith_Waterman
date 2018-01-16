@@ -28,12 +28,19 @@ namespace SmithWaterman
 
 
             int[,] InitialMatrix = InitiateMatrix(firstGenome, secondGenome);
+
             PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
+            CalculateMatrix(firstGenome, secondGenome, InitialMatrix);
+
+            PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
             Console.ReadKey();
-
         }
+
+
+
+
 
         public static string[] ReadFiles()
         {
@@ -60,8 +67,7 @@ namespace SmithWaterman
 
             //int numberOfLinesInGenomeFile = NumberOfLinesInGenome(genome);
             //PrintStatisticsOfGenome(genome, numberOfLinesInGenomeFile);
-
-
+            
             genome = RemoveSpacesFromGenome(genome);
             
             return genome;
@@ -117,14 +123,13 @@ namespace SmithWaterman
                     InitialMatrix[i, j] = 0;
                 }
             }
-
             return InitialMatrix;
         }
 
 
-        public static void PrintMatrix(int lengthOfFirstGenome, int lengthOfSecondGenome, int[,] InitialMatrix, string firstGenome, string SecondGenome)
+        public static void PrintMatrix(int lengthOfFirstGenome, int lengthOfSecondGenome, int[,] Matrix, string firstGenome, string SecondGenome)
         {
-            Console.WriteLine("\n \n Genome Matrix: \n");
+            Console.WriteLine("\n \nGenome Matrix: \n");
 
             Console.Write("    " + "    ");
             for (int i = 0; i < lengthOfFirstGenome; i++)
@@ -156,9 +161,27 @@ namespace SmithWaterman
                 for (int j = 0; j < lengthOfFirstGenome; j++)
                 {
                     if (j < 10)
-                        Console.Write(InitialMatrix[i, j] + "   ");
+                    {
+                        if (Matrix[i, j] < 10)
+                        {
+                            Console.Write(Matrix[i, j] + "   ");
+                        }
+                        else
+                        {
+                            Console.Write(Matrix[i, j] + "  ");
+                        } 
+                    }
                     else
-                        Console.Write(InitialMatrix[i, j] + "    ");
+                    {
+                        if (Matrix[i, j] < 10)
+                        {
+                            Console.Write(Matrix[i, j] + "    ");
+                        }
+                        else
+                        {
+                            Console.Write(Matrix[i, j] + "   ");
+                        }
+                    }
                 }
                 Console.WriteLine();
             }
@@ -166,9 +189,63 @@ namespace SmithWaterman
 
 
 
+        public static int[,] CalculateMatrix(string firstGenome, string secondGenome, int[,] Matrix)
+        {
+            int lengthOfFirstGenome = firstGenome.Length;
+            int lengthOfSecondGenome = secondGenome.Length;
+            
+            int maxScore = 0;
+            int maxI = 0;
+            int maxJ = 0;
+            
+            for (int i = 0; i < lengthOfSecondGenome; i++)
+            {
+                for (int j = 0; j < lengthOfFirstGenome; j++)
+                {
+                    int score = CalculateScore(Matrix, i, j, firstGenome, secondGenome);
+                    if (score > maxScore)
+                    {
+                        maxScore = score;
+                        maxI = i;
+                        maxJ = j;
+                    }
+                    Matrix[i,j] = score;
+                }
+            }
+
+            return Matrix;
+        }
+
+
+        public static int CalculateScore(int[,] Matrix, int i, int j, string firstGenome, string secondGenome)
+        {
+            int similarity = 0;
+            int match = 10;
+            int mismatch = 0;
+            int insertion = 7;
+            int deletion = 6;
+            int weight = 0;
+
+            if (firstGenome[i] == secondGenome[j])
+            {
+                similarity = match;
+            }
+            else
+            {
+                similarity = mismatch;
+            }
+
+            int diagonalValue = Matrix[i - 1, j - 1] + similarity;
+            int upValue = Matrix[i - 1, j] + insertion;//NISAM SIGURAN KOJI JE INSERTION A KOJI DELETION
+            int leftValue = Matrix[i, j - 1] + deletion;//NISAM SIGURAN KOJI JE INSERTION A KOJI DELETION
+
+            //return max(0, diagonalValue, upValue, leftValue);//IMPLEMENTIRAJ MAKSIMALNU FUNKCIJU ZA 4 PARAMETRA
+            return 0;
+        }
 
 
 
 
-    }//class program
+
+        }//class program
 }//namespace
