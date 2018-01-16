@@ -16,6 +16,11 @@ namespace SmithWaterman
             PrintFiles(bothFiles);
             ParseFile(bothFiles[0]);
             ParseFile(bothFiles[1]);
+
+
+
+
+
             Console.ReadKey();
 
         }
@@ -42,18 +47,15 @@ namespace SmithWaterman
             //Console.WriteLine("Myfile u parse metodi tj genom je : " + MyFile);
 
             string genome = RemoveFirstLinesFromFile(MyFile, 1);
-
-            int genomeLength = GenomeLength(genome);
-            Console.WriteLine("Number of lines in genome is: " + genomeLength);
             
+            int genomeLength = CalculateGenomeLength(genome);
+
             genome = Regex.Replace(genome, @"\s+", string.Empty);
 
-            Console.WriteLine("Number of nucleotides in genome: " + genome.Length);
-
-            Console.WriteLine("Genom in its final form: \n" + genome);
-
+            PrintGenome(genome);
+            PrintStatisticsOfGenome(genome, genomeLength);
             //PrintNucleotidesOfGenome(genome);
-            
+
         }
 
         public static string RemoveFirstLinesFromFile(string text, int linesCount)
@@ -62,7 +64,7 @@ namespace SmithWaterman
             return string.Join(Environment.NewLine, lines.ToArray());
         }
 
-        public static int GenomeLength(string genome)
+        public static int CalculateGenomeLength(string genome)
         {
             var lines = Regex.Split(genome, "\r\n|\r|\n");
             return lines.Length;
@@ -76,6 +78,36 @@ namespace SmithWaterman
             }
         }
 
+        public static void PrintStatisticsOfGenome(string genome, int genomeLength)
+        {
+            Console.WriteLine("Number of lines in file (genome) is: " + genomeLength);
+            Console.WriteLine("Number of nucleotides in genome: " + genome.Length);
+        }
+
+        public static void PrintGenome(string genome)
+        {
+            Console.WriteLine("Genom in its final form: \n" + genome);
+        }
+
+        public static string InitiateMatrix(string firstGenome, string secondGenome)
+        {
+
+
+
+            //TU SAM STAO #######################################################
+
+
+            return "";
+        }
+
+
+
+
+
+
+
+
+        
 
     }//class program
 }//namespace
