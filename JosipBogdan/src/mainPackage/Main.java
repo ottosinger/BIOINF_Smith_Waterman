@@ -7,6 +7,9 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.Arrays;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class Main {
 	public static void main(String [ ] args) throws IOException
@@ -21,9 +24,18 @@ public class Main {
 		int maxScore = 0;
 		int maxI = 0;
 		int maxJ = 0;
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print("Enter First Genome File name");
+		System.out.println("\n");
+        String frst = br.readLine();
+        System.out.print("Enter Second Genome File name");
+		System.out.println("\n");
+        String scnd = br.readLine();
+		Path aPath = Paths.get(frst);
+		Path bPath = Paths.get(scnd);
 		
-		Path aPath = Paths.get("a.txt");
-		Path bPath = Paths.get("b.txt");
+		
+		
 		 try {
 
 		      char[] firstGenome = readFile(aPath, Charset.defaultCharset()).toCharArray();
