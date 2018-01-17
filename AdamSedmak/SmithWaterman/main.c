@@ -1,10 +1,19 @@
+/*  Watterman - Eggert algorithm in C code
+ *  @author: Adam Sedmak
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct trace trace;
+
 struct trace{
-	int score, row,col;
-	char direction;			// direction of move (0 - initial value, 1 - diagonal, 2 - up, 3 - left)
+	int score, row, col;
+	char direction;
+	trace *next;
+	trace *prev;
+
 };
 
 
@@ -121,7 +130,7 @@ void printMatrix(int* matrix, int rows, int cols, char* inputGenome1, char* inpu
 	}
 }
 
-int	calculateDirection(int diagonal, int left, int up, int wMismatch, int wDeletion, int wInsertion){
+char	calculateDirection(int diagonal, int left, int up, int wMismatch, int wDeletion, int wInsertion){
 	int max;
 	max = ((diagonal - wMismatch) >= (up - wInsertion)) ? (((diagonal - wMismatch) >= (left - wDeletion)) ? 0 : 2) : (((up - wInsertion) >= (left - wDeletion)) ? 1 : 2 );
 	return max;
@@ -149,7 +158,7 @@ char checkForMax(int current[], int tempRow, int tempCol){
 
 int* fillMatrix(int* matrix, int rows, int cols, int wMatch, int wMismatch, int wInsertion, int wDeletion, char* inputGenome1, char* inputGenome2){
 
-	int direction;
+	char direction;
 	static int maxNumber[] = {0, 0, 0};
 
 	for(int i = 0; i < rows; i++){
@@ -188,10 +197,80 @@ int* fillMatrix(int* matrix, int rows, int cols, int wMatch, int wMismatch, int 
 	return maxNumber;
 }
 
-void traceback(struct trace *trace, int* matrix, int initValue, int initRow, int initColumn){
+void traceback(trace *firstTrace, int* matrix, int* initCell, int rows, int cols, int wMatch, int wMismatch, int wInsertion, int wDeletion, char* inputGenome1, char* inputGenome2){
+	int i = initCell[1];
+	int j = initCell[2];
+	int n = 0;
+	char direction = 0;
+	int diagonal, left, up;
 
+	trace* prevTrace = firstTrace;
 
+	printf("INICIJALNA PIZDARIJA:\n");
+	printf("%3d, %3d, %3d\n", prevTrace->score, prevTrace->row, prevTrace->col);
+	printf("----------------------------------------------\n");
+	n++;
 
+	while((matrix[(i-1)*cols + (j-1)] != 0) || (matrix[(i-1)*cols + j] != 0) || (matrix[i*cols + (j-1)] != 0)){
+		//traceArray = (struct trace *)realloc(traceArray, (n+1) * sizeof(struct trace));
+		trace* newTrace = malloc(sizeof(trace));
+
+		diagonal = matrix[(i-1)*cols + (j-1)];
+		left = matrix[i*cols + (j-1)];
+		up = matrix[(i-1)*cols + j];
+		printf("Prosao %d. put\n", n);
+
+		if((inputGenome1[j-1] == inputGenome2[i-1])){
+			i -= 1;
+			j -= 1;
+			direction = 0;
+			newTrace->score = diagonal;
+			newTrace->row = i;
+			newTrace->col = j;
+			newTrace->direction = direction;
+
+			newTrace->next = prevTrace;
+			newTrace->prev = NULL;
+			prevTrace->prev = newTrace;
+		} else {
+			direction = calculateDirection(diagonal, left, up, wMismatch, wDeletion, wInsertion);
+			if(direction == 0){
+				i -= 1;
+				j -= 1;
+				newTrace->score = diagonal;
+				newTrace->row = i;
+				newTrace->col = j;
+				newTrace->direction = direction;
+
+				newTrace->next = prevTrace;
+				newTrace->prev = NULL;
+				prevTrace->prev = newTrace;
+			} else if (direction == 1){
+				i -= 1;
+				newTrace->score = up;
+				newTrace->row = i;
+				newTrace->col = j;
+				newTrace->direction = direction;
+
+				newTrace->next = prevTrace;
+				newTrace->prev = NULL;
+				prevTrace->prev = newTrace;
+			} else if (direction == 2){
+				j -= 1;
+				newTrace->score = left;
+				newTrace->row = i;
+				newTrace->col = j;
+				newTrace->direction = direction;
+				newTrace->next = prevTrace;
+				newTrace->prev = NULL;
+				prevTrace->prev = newTrace;
+			}
+		}
+		printf("Direction: %d\n", direction);
+		printf("%3d, %3d, %3d\n", newTrace->score, newTrace->row, newTrace->col);
+		prevTrace = newTrace;
+		n++;
+	}
 }
 
 
@@ -265,19 +344,22 @@ int main(int argc, char *argv[]) {
 	int columns = sizeOfInputFile1 + 1;
 	int matrixOfSimilarity[rows][columns];
 	int *maxAlign;
-	struct trace *trace = malloc(sizeof(trace));
+
+	trace firstTrace;
 
 	maxAlign = fillMatrix((int *) matrixOfSimilarity, rows, columns, weightMatch, weightMismatch, weightInsertion, weightDeletion, inputGenome1, inputGenome2);
 	printMatrix((int *)matrixOfSimilarity, rows, columns, inputGenome1, inputGenome2);
 
-	trace->score = maxAlign[0];
-	trace->row = maxAlign[1];
-	trace->col = maxAlign[2];
-	trace->direction = 0;
+	firstTrace.score = maxAlign[0];
+	firstTrace.row = maxAlign[1];
+	firstTrace.col = maxAlign[2];
+	firstTrace.direction = 3;
+	firstTrace.next = NULL;
+	firstTrace.prev = NULL;
 
-	traceback(trace, (int *) matrixOfSimilarity, maxAlign[0], maxAlign[1], maxAlign[2]);
+	traceback(&firstTrace, (int *) matrixOfSimilarity, maxAlign, rows, columns, weightMatch, weightMismatch, weightInsertion, weightDeletion, inputGenome1, inputGenome2);
 
-	printf("Maximum number: %5d; Location: Row %5d, Column %5d\n", trace->score, maxAlign[1], maxAlign[2]);
+	//printf("%3d, %3d, %3d, %3d, %3d\n", firstTrace.score, firstTrace.row, firstTrace.col);
 
 	fclose(fileInput1);
 	fclose(fileInput2);

@@ -8,51 +8,63 @@ import java.nio.file.Paths;
 public class Main {
 	public static void main(String [ ] args) throws IOException
 	{
-		int diagonal;
+		int similarity = 0;
 		int delete = -10;
 		int insert = -10;
 		int match = 10;
-		int skip = -9;
+		int mismatch = -9;
+
 		
-		int globalMax = -1;
-		int maxX = -1;
-		int maxY = -1;
+		int maxScore = 0;
+		int maxI = 0;
+		int maxJ = 0;
 		
 		Path aPath = Paths.get("a.txt");
 		Path bPath = Paths.get("b.txt");
 		 try {
 
-		      char[] aCharArray = readFile(aPath, Charset.defaultCharset()).toCharArray();
+		      char[] firstGenome = readFile(aPath, Charset.defaultCharset()).toCharArray();
 
-		      char[] bCharArray = readFile(bPath, Charset.defaultCharset()).toCharArray();
+		      char[] secondGenome = readFile(bPath, Charset.defaultCharset()).toCharArray();
 		      
-		      System.out.println(aCharArray);
-		      System.out.println(bCharArray);
-		      int a = aCharArray.length;
-		      int b = bCharArray.length;
+		      System.out.println(firstGenome);
+		      System.out.println(secondGenome);
+		      int a = firstGenome.length;
+		      int b = secondGenome.length;
 		      //int[][] hMatrix = createMatrix(aCharArray.length, bCharArray.length);
 		      
-		      int[][] tempMatrix = new int[a][b];
+		      int[][] hMatrix = new int[a+1][b+1];
 				for(int i=0; i<a; i++){
 					for(int j=0; j<b; j++){
 						if (i==0 || j==0) {
-							tempMatrix[i][j] = 0;
-						}else {
-							tempMatrix[i][j] = 1;
+							hMatrix[i][j] = 0;
 						}
 					}
 				}
 				
-				for (int i=1; i<a; i++) {
-					for (int j=1; j<b; j++) {
-						if (aCharArray[i] == bCharArray[j]) {
-							diagonal = match;
+				for (int i=1; i<a+1; i++) {
+					for (int j=1; j<b+1; j++) {
+						if (firstGenome[i-1] == secondGenome[j-1]) {
+							similarity = match;
 						}else {
-							diagonal = skip;
+							similarity = mismatch;
 						}
+						int diagonalValue = hMatrix[i-1][j-1] + similarity;
+						int upValue = hMatrix[i-1][j] + insert;
+						int downValue = hMatrix[i][j-1] + delete;
+						
+						int score = Math.max(0, Math.max( diagonalValue,Math.max(upValue, downValue)));
+						if (score > maxScore) {
+							maxScore = score;
+							maxI = i-1;
+							maxJ = j-1;
+						}
+						hMatrix[i][j] = score;
 					}
 				}
-		      
+				
+				System.out.println("Score:" + maxScore + "MaxX:" + maxI + "MaxY:" + maxJ);
+				
 		    } catch (IOException e) {
 		      System.out.println(e);
 		    }
