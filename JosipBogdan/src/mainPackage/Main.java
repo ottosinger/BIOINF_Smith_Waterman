@@ -15,10 +15,10 @@ public class Main {
 	public static void main(String [ ] args) throws IOException
 	{
 		int similarity = 0;
-		int delete = -10;
-		int insert = -10;
-		int match = 10;
-		int mismatch = -9;
+		int delete = -1;
+		int insert = -1;
+		int match = 1;
+		int mismatch = -1;
 
 		
 		int maxScore = 0;
@@ -46,20 +46,19 @@ public class Main {
 		      System.out.println(secondGenome);
 		      int a = firstGenome.length;
 		      int b = secondGenome.length;
-		      //int[][] hMatrix = createMatrix(aCharArray.length, bCharArray.length);
 		      
-		      int[][] hMatrix = new int[a+1][b+1];
-				for(int i=0; i<a; i++){
-					for(int j=0; j<b; j++){
+		      int[][] hMatrix = new int[b+1][a+1];
+				for(int i=0; i<b+1; i++){ // punjenje prvog reda i stupca sa nulama
+					for(int j=0; j<a+1; j++){
 						if (i==0 || j==0) {
 							hMatrix[i][j] = 0;
 						}
 					}
 				}
 				
-				for (int i=1; i<a+1; i++) {
-					for (int j=1; j<b+1; j++) {
-						if (firstGenome[i-1] == secondGenome[j-1]) {
+				for (int i=1; i<b+1; i++) { //kreiranje matrice i racunanje score-a
+					for (int j=1; j<a+1; j++) {
+						if (firstGenome[j-1] == secondGenome[i-1]) {
 							similarity = match;
 						}else {
 							similarity = mismatch;
@@ -68,7 +67,7 @@ public class Main {
 						int upValue = hMatrix[i-1][j] + insert;
 						int downValue = hMatrix[i][j-1] + delete;
 						
-						int score = Math.max(0, Math.max( diagonalValue,Math.max(upValue, downValue)));
+						int score = Math.max(0, Math.max( diagonalValue,Math.max(upValue, downValue)));//racunanje najvece vrijednosti
 						if (score > maxScore) {
 							maxScore = score;
 							maxI = i-1;
@@ -81,8 +80,8 @@ public class Main {
 					System.out.print(secondGenome[i] + " ");
 				}
 				System.out.println("\n");
-				for(int i = 0; i < a; i++) {
-					for (int j = 0; j<b; j++) {
+				for(int i = 0; i < b; i++) {
+					for (int j = 0; j<a; j++) {
 						System.out.print(hMatrix[i][j] + " ");
 					}
 					System.out.println("\n");
@@ -104,7 +103,6 @@ public class Main {
 				int y = maxJ;
 				
 				String previousElement = NextMove(hMatrix, x+1, y+1, weight);
-				//nextmove
 				while(previousElement != "stop" && previousElement != "invalid move") {
 					if (previousElement == "diagonalMatch" || previousElement == "diagonalMismatch") {
 						Integer[] temp = new Integer[4];
@@ -175,20 +173,20 @@ public class Main {
 		String align = "";
 		for (Iterator<Integer[]> i = elementList.iterator(); i.hasNext();) {
 		    Integer[] temp = i.next();
-			System.out.println("prvi" + temp[0] + "drugi" + temp[1] + "treci" + temp[2]);
+			System.out.println("prvi " + temp[0] + "drugi " + temp[1] + "treci " + temp[2] + "cetvrti " + temp[3]);
 
-		    if (temp[3] == 10) {
+		    if (temp[3] == 10) { //match
 		    	int coordinateY = temp[1];
 		    	align += secondGenome[coordinateY];
 		    }else {
-		    	if (temp[3] == 11) {
+		    	if (temp[3] == 11) {//mismatch
 		    		int coordianteY = temp[1] + 1;
 		    		align += secondGenome[coordianteY];
 		    	}else {
-		    		if(temp[3] == 2) {
+		    		if(temp[3] == 2) { //deletion
 		    			align += ".";
 		    		}else {
-		    			if (temp[3] == 3) {
+		    			if (temp[3] == 3) { //insertion
 		    				align += "-";
 		    			}else {
 		    				System.out.print("error\n");
