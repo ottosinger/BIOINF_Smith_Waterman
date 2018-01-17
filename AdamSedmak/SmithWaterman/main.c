@@ -6,22 +6,26 @@
  *	return -> filesize in bytes counting out the first line
  */
 int countFileSize(FILE *fp){
-	int size, firstLineSize;
+	int size;
 	char c;
 
-	firstLineSize = 0;
-
+	size = 0;
 	// Skip the first line
-	do{
+	for(;;){
 		c = fgetc(fp);
-		firstLineSize++;
-	} while( c != '\n');
-
-	fseek(fp, 0L, SEEK_END);
-	size = ftell(fp);
+		if (c == '\n'){
+			break;
+		}
+	}
+	for(;;){
+		c = fgetc(fp);
+		if (c == EOF)
+			break;
+		if (c != '\n')
+			size++;
+	}
 	rewind(fp);
-
-	return (size - firstLineSize);
+	return size;
 }
 
 /*	This function counts the number of bytes in line of a genome in a given file
@@ -31,11 +35,16 @@ int countFileSize(FILE *fp){
 int lineSize(FILE *fp){
 	char c;
 	int lineSize;
+	fpos_t pos;
 
+	lineSize = 0;
 	// Skip the first line
-	do{
+	for(;;){
 		c = fgetc(fp);
-	} while( c != '\n');
+		if (c == '\n')
+			break;
+	}
+	fgetpos(fp, &pos);
 
 	for(;;){
 		c = fgetc(fp);
@@ -43,7 +52,34 @@ int lineSize(FILE *fp){
 			break;
 		lineSize++;
 	}
+	fsetpos(fp, &pos);
 	return lineSize;
+}
+
+void removeAll(char * str, const char toRemove)
+{
+    int i, j;
+    int len = strlen(str);
+
+    for(i=0; i<len; i++)
+    {
+        /*
+         * If the character to remove is found then shift all characters to one
+         * place left and decrement the length of string by 1.
+         */
+        if(str[i] == toRemove)
+        {
+            for(j=i; j<len; j++)
+            {
+                str[j] = str[j+1];
+            }
+
+            len--;
+
+            // If a character is removed then make sure i doesn't increments
+            i--;
+        }
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -67,7 +103,7 @@ int main(int argc, char *argv[]) {
 	weightMismatch = atoi(argv[4]);
 	weightInsertion = atoi(argv[5]);
 	weightDeletion = atoi(argv[6]);
-	fileOutput = fopen(argv[7], "w");
+	fileOutput = fopen(argv[7], "w+");
 
 	printf("---------------------------------------------\n");
 	printf("Reading data from files...\n");
@@ -75,20 +111,46 @@ int main(int argc, char *argv[]) {
 	sizeOfInputFile1 = countFileSize(fileInput1);
 	sizeOfInputFile2 = countFileSize(fileInput2);
 
+	printf("Size of input file1: %d\n", sizeOfInputFile1);
+	printf("Size of input file2: %d\n", sizeOfInputFile2);
+
 	lineSize1 = lineSize(fileInput1);
 	lineSize2 = lineSize(fileInput2);
 
-	inputGenome1 = (char *) malloc(sizeOfInputFile1);
-	inputGenome2 = (char *) malloc(sizeOfInputFile2);
+	printf("Size of a line in file1: %d\n", lineSize1);
+	printf("Size of a line in file2: %d\n", lineSize2);
 
-	char line1[lineSize1 + 1], line2[lineSize2 + 1];
+	inputGenome1 = (char *) malloc(sizeOfInputFile1 + 1);
+	inputGenome2 = (char *) malloc(sizeOfInputFile2 + 1);
+
+	char line1[lineSize1+1], line2[lineSize2+1];
 
 	while(fgets(line1, sizeof(line1), fileInput1) != NULL){
-
-
+		strcat(inputGenome1, line1);
 	}
+	removeAll(inputGenome1, '\r');
+	removeAll(inputGenome1, '\n');
+
+	while(fgets(line2, sizeof(line2), fileInput2) != NULL){
+		strcat(inputGenome2, line2);
+	}
+	removeAll(inputGenome2, '\r');
+	removeAll(inputGenome2, '\n');
 
 	printf("---------------------------------------------\n");
 	
+	printf("File 1:\n\n");
+	printf("%s\n", inputGenome1);
+	printf("---------------------------------------------\n");
+
+	printf("File 2:\n\n");
+	printf("%s\n", inputGenome2);
+	printf("---------------------------------------------\n");
+
+	fclose(fileInput1);
+	fclose(fileInput2);
+
+	free(inputGenome1);
+	free(inputGenome2);
 
 }
