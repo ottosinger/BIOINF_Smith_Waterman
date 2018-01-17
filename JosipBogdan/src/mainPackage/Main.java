@@ -112,6 +112,12 @@ public class Main {
 						temp[1] = x-1;
 						temp[2] = y-1;
 						temp[3] = 0;
+						
+						if (previousElement == "diagonalMatch") {
+							temp[3] = 10;
+						}else {
+							temp[3] = 11;
+						}
 						elementList.add(temp);
 						x--;
 						y--;
