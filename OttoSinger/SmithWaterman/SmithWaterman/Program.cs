@@ -12,6 +12,12 @@ namespace SmithWaterman
     {
         static void Main(string[] args)
         {
+            int match = 10;
+            int mismatch = -9;
+            int insertion = -10;
+            int deletion = -10;
+            int[] weight = { match, mismatch, insertion, deletion };
+
             string[] bothFiles = ReadFiles();
             //PrintFiles(bothFiles);
 
@@ -31,14 +37,19 @@ namespace SmithWaterman
 
             PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
-            int[] maxKnowledge = CalculateMatrix(firstGenome, secondGenome, InitialMatrix);
+            int[] maxKnowledge = CalculateMatrix(firstGenome, secondGenome, InitialMatrix, weight);
             int maxScore = maxKnowledge[0];
             int maxI = maxKnowledge[1];
             int maxJ = maxKnowledge[2];
 
             PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
-            List<int[]> jea = Traceback(InitialMatrix, maxKnowledge);
+            List<int[]> jea = Traceback(InitialMatrix, maxKnowledge, weight);
+
+            jea.Reverse();
+
+            Console.WriteLine(firstGenome);
+            Console.WriteLine(secondGenome);
 
             Console.ReadKey();
         }
@@ -169,7 +180,7 @@ namespace SmithWaterman
 
 
 
-        public static int[] CalculateMatrix(string firstGenome, string secondGenome, int[,] Matrix)
+        public static int[] CalculateMatrix(string firstGenome, string secondGenome, int[,] Matrix, int[] weight)
         {
             int lengthOfFirstGenome = firstGenome.Length;
             int lengthOfSecondGenome = secondGenome.Length;
@@ -182,7 +193,7 @@ namespace SmithWaterman
             {
                 for (int j = 1; j < lengthOfFirstGenome+1; j++)
                 {
-                    int score = CalculateScore(Matrix, i, j, firstGenome, secondGenome);
+                    int score = CalculateScore(Matrix, i, j, firstGenome, secondGenome, weight);
                     if (score > maxScore)
                     {
                         maxScore = score;
@@ -198,14 +209,13 @@ namespace SmithWaterman
         }
 
 
-        public static int CalculateScore(int[,] Matrix, int i, int j, string firstGenome, string secondGenome)
+        public static int CalculateScore(int[,] Matrix, int i, int j, string firstGenome, string secondGenome, int[] weight)
         {
             int similarity = 0;
-            int match = 10;
-            int mismatch = -9;
-            int insertion = -10;
-            int deletion = -10;
-            //int weight = 0;
+            int match = weight[0];
+            int mismatch = weight[1];
+            int insertion = weight[2];
+            int deletion = weight[3];
 
             if (firstGenome[j-1] == secondGenome[i-1])
             {
@@ -238,7 +248,7 @@ namespace SmithWaterman
 
 
 
-        public static List<int[]> Traceback(int[,] Matrix, int[] maxKnowledge)
+        public static List<int[]> Traceback(int[,] Matrix, int[] maxKnowledge, int[] weight)
         {
             int maxScore = maxKnowledge[0];
             int maxI = maxKnowledge[1];
@@ -256,7 +266,7 @@ namespace SmithWaterman
             int x = maxI;
             int y = maxJ;
             
-            string previousElement = NextMove(Matrix , x+1, y+1);// ove plus jedinice na x i y su zbog prvog reda i stupca nula pa je sve u banani sa indexima
+            string previousElement = NextMove(Matrix , x+1, y+1, weight);// ove plus jedinice na x i y su zbog prvog reda i stupca nula pa je sve u banani sa indexima
 
             while (previousElement != "stop" || previousElement != "invalid move")
             {
@@ -290,19 +300,27 @@ namespace SmithWaterman
                         }
                     }
                 }
-                previousElement = NextMove(Matrix, x+1, y+1);// ove plus jedinice na x i y su zbog prvog reda i stupca nula pa je sve u banani sa indexima
+                previousElement = NextMove(Matrix, x+1, y+1, weight);// ove plus jedinice na x i y su zbog prvog reda i stupca nula pa je sve u banani sa indexima
             }
             return listOfElements;
         }
 
 
-        public static string NextMove(int[,] Matrix, int x, int y)
+        public static string NextMove(int[,] Matrix, int x, int y, int[] weight)
         {
+            //OVDJE X I Y IMAJU PRAVU VRIJEDNOST, MOZES KORISTITI INDEXE U ISPISU
+            int match = weight[0];
+            int mismatch = weight[1];
+            int insertion = weight[2];
+            int deletion = weight[3];
+
             int diagonal = Matrix[x - 1, y - 1];
             int up = Matrix[x - 1, y];
             int left = Matrix[x, y - 1];
 
-            if (diagonal >= up && diagonal >= left)
+            int current = Matrix[x, y];
+
+            if (diagonal + match == current || diagonal + mismatch == current)//diagonal >= up && diagonal >= left
             {
                 if (diagonal != 0)
                 {
@@ -315,7 +333,7 @@ namespace SmithWaterman
             }
             else
             {
-                if (up >= diagonal && up >= left)
+                if (up + insertion == current)//up >= diagonal && up >= left
                 {
                     if (up != 0)
                     {
@@ -328,7 +346,7 @@ namespace SmithWaterman
                 }
                 else
                 {
-                    if (left >= diagonal && left >= up)
+                    if (left + deletion == current)//left >= diagonal && left >= up
                     {
                         if (up != 0)
                         {
