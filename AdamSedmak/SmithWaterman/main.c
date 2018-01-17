@@ -197,22 +197,23 @@ int* fillMatrix(int* matrix, int rows, int cols, int wMatch, int wMismatch, int 
 	return maxNumber;
 }
 
-void traceback(trace *firstTrace, int* matrix, int* initCell, int rows, int cols, int wMatch, int wMismatch, int wInsertion, int wDeletion, char* inputGenome1, char* inputGenome2){
+trace traceback(trace *lastTrace, int* matrix, int* initCell, int rows, int cols, int wMatch, int wMismatch, int wInsertion, int wDeletion, char* inputGenome1, char* inputGenome2){
 	int i = initCell[1];
 	int j = initCell[2];
 	int n = 0;
 	char direction = 0;
 	int diagonal, left, up;
 
-	trace* prevTrace = firstTrace;
+	trace* prevTrace = lastTrace;
 
-	printf("INICIJALNA PIZDARIJA:\n");
-	printf("%3d, %3d, %3d\n", prevTrace->score, prevTrace->row, prevTrace->col);
-	printf("----------------------------------------------\n");
+	//printf("%d, %d, %d, %d, %d\n", &prevTrace, prevTrace->next, prevTrace, lastTrace, &lastTrace);
+
+	//printf("INICIJALNA PIZDARIJA:\n");
+	//printf("%3d, %3d, %3d\n", prevTrace->score, prevTrace->row, prevTrace->col);
+	//printf("----------------------------------------------\n");
 	n++;
 
 	while((matrix[(i-1)*cols + (j-1)] != 0) || (matrix[(i-1)*cols + j] != 0) || (matrix[i*cols + (j-1)] != 0)){
-		//traceArray = (struct trace *)realloc(traceArray, (n+1) * sizeof(struct trace));
 		trace* newTrace = malloc(sizeof(trace));
 
 		diagonal = matrix[(i-1)*cols + (j-1)];
@@ -228,10 +229,6 @@ void traceback(trace *firstTrace, int* matrix, int* initCell, int rows, int cols
 			newTrace->row = i;
 			newTrace->col = j;
 			newTrace->direction = direction;
-
-			newTrace->next = prevTrace;
-			newTrace->prev = NULL;
-			prevTrace->prev = newTrace;
 		} else {
 			direction = calculateDirection(diagonal, left, up, wMismatch, wDeletion, wInsertion);
 			if(direction == 0){
@@ -241,36 +238,30 @@ void traceback(trace *firstTrace, int* matrix, int* initCell, int rows, int cols
 				newTrace->row = i;
 				newTrace->col = j;
 				newTrace->direction = direction;
-
-				newTrace->next = prevTrace;
-				newTrace->prev = NULL;
-				prevTrace->prev = newTrace;
 			} else if (direction == 1){
 				i -= 1;
 				newTrace->score = up;
 				newTrace->row = i;
 				newTrace->col = j;
 				newTrace->direction = direction;
-
-				newTrace->next = prevTrace;
-				newTrace->prev = NULL;
-				prevTrace->prev = newTrace;
 			} else if (direction == 2){
 				j -= 1;
 				newTrace->score = left;
 				newTrace->row = i;
 				newTrace->col = j;
 				newTrace->direction = direction;
-				newTrace->next = prevTrace;
-				newTrace->prev = NULL;
-				prevTrace->prev = newTrace;
 			}
 		}
-		printf("Direction: %d\n", direction);
+		prevTrace->prev = newTrace;
+		newTrace->next = prevTrace;
+		newTrace->prev = NULL;
+
+		//printf("Direction: %d\n", direction);
 		printf("%3d, %3d, %3d\n", newTrace->score, newTrace->row, newTrace->col);
 		prevTrace = newTrace;
 		n++;
 	}
+	return *prevTrace;
 }
 
 
@@ -345,21 +336,29 @@ int main(int argc, char *argv[]) {
 	int matrixOfSimilarity[rows][columns];
 	int *maxAlign;
 
-	trace firstTrace;
+	trace lastTrace, curTrace, firstTrace;
 
 	maxAlign = fillMatrix((int *) matrixOfSimilarity, rows, columns, weightMatch, weightMismatch, weightInsertion, weightDeletion, inputGenome1, inputGenome2);
 	printMatrix((int *)matrixOfSimilarity, rows, columns, inputGenome1, inputGenome2);
 
-	firstTrace.score = maxAlign[0];
-	firstTrace.row = maxAlign[1];
-	firstTrace.col = maxAlign[2];
-	firstTrace.direction = 3;
-	firstTrace.next = NULL;
-	firstTrace.prev = NULL;
+	lastTrace.score = maxAlign[0];
+	lastTrace.row = maxAlign[1];
+	lastTrace.col = maxAlign[2];
+	lastTrace.direction = 3;
+	lastTrace.next = NULL;
+	lastTrace.prev = NULL;
 
-	traceback(&firstTrace, (int *) matrixOfSimilarity, maxAlign, rows, columns, weightMatch, weightMismatch, weightInsertion, weightDeletion, inputGenome1, inputGenome2);
+	firstTrace = traceback(&lastTrace, (int *) matrixOfSimilarity, maxAlign, rows, columns, weightMatch, weightMismatch, weightInsertion, weightDeletion, inputGenome1, inputGenome2);
 
-	//printf("%3d, %3d, %3d, %3d, %3d\n", firstTrace.score, firstTrace.row, firstTrace.col);
+	curTrace = firstTrace;
+
+	int n = 1;
+	while(curTrace.next != NULL){
+		printf("%d. trace: score - %3d, row - %3d, column: %3d\n", n, curTrace.score, curTrace.row, curTrace.col);
+		curTrace = *curTrace.next;
+		n++;
+	}
+	printf("%d. trace: score - %3d, row - %3d, column: %3d\n", n, curTrace.score, curTrace.row, curTrace.col);
 
 	fclose(fileInput1);
 	fclose(fileInput2);
