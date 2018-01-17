@@ -17,6 +17,9 @@ int countFileSize(FILE *fp){
 			break;
 		}
 	}
+
+	/*	Count the number of bytes in a file excluding \n and \r
+	 */
 	for(;;){
 		c = fgetc(fp);
 		if (c == EOF)
@@ -38,20 +41,26 @@ int lineSize(FILE *fp){
 	fpos_t pos;
 
 	lineSize = 0;
+
 	// Skip the first line
 	for(;;){
 		c = fgetc(fp);
 		if (c == '\n')
 			break;
 	}
+
+	// Memorize current position so we can return file pointer to the start of the important part of the file
 	fgetpos(fp, &pos);
 
+	// Iterate until end of line
 	for(;;){
 		c = fgetc(fp);
 		if (c == EOF || c == '\n')
 			break;
 		lineSize++;
 	}
+
+	// Return the file pointer to the memorized position
 	fsetpos(fp, &pos);
 	return lineSize;
 }
@@ -82,22 +91,42 @@ void removeAll(char * str, const char toRemove)
     }
 }
 
-void printMatrix(int* matrix,int rows, int cols, char* inputGenome1, char* inputGenome2){
-	for (int i = 0; i <= rows + 1; i++){
-		for (int j = 0; j <= cols + 1; j++){
+void printMatrix(int* matrix, int rows, int cols, char* inputGenome1, char* inputGenome2){
+	for (int i = 0; i < rows + 1; i++){
+		for (int j = 0; j < cols + 1; j++){
 			if ((i == 0 && j == 0) || (i == 0 && j == 1) || (i == 1 && j == 0)){
 				printf("   ");
-				continue;
 			}
+
+			// Print the first input genome
 			else if (i == 0)
 				printf("%3c", inputGenome1[j - 2]);
+
+			// Print the second input genome
 			else if (j == 0)
 				printf("%3c", inputGenome2[i - 2]);
+
+			// Print the matrix of similarity
 			else
-				printf("%3d", *(matrix + (i-1)*cols + (j-1)));
+				printf("%3d", *((matrix + (i-1) * cols) + j-1));
 		}
 		printf("\n");
 	}
+}
+
+void fillMatrix(int* matrix, int rows, int cols, int wMatch, int wMismatch, int wInsertion, int wDeletion, char* inputGenome1, char* inputGenome2){
+	for(int i = 0; i < rows; i++){
+		for (int j = 0; j < cols; j++){
+
+			// Fill first line and column with zeros
+			//if((i == 0) || (j == 0))
+				matrix[i * cols + j] =  i + j;
+
+
+		}
+
+	}
+
 }
 
 int main(int argc, char *argv[]) {
@@ -166,37 +195,35 @@ int main(int argc, char *argv[]) {
 	printf("---------------------------------------------\n");
 	printf("Filling the matrix...\n\n");
 
-	int matrixOfSimilarity[sizeOfInputFile2][sizeOfInputFile1];
-	int i,j;
+	int rows = sizeOfInputFile2 + 1;
+	int columns = sizeOfInputFile1 + 1;
+	int matrixOfSimilarity[rows][columns];
 
-	for (i = 0; i <= sizeOfInputFile2; i++){
-		for (j = 0; j <= sizeOfInputFile1; j++){
-			matrixOfSimilarity[i][j] = i + j;
-		}
-	}
-
-
-	// TODO: neki kurac ne ispisuje dobro
-	printMatrix((int *)matrixOfSimilarity, sizeOfInputFile2, sizeOfInputFile1, inputGenome1, inputGenome2);
-
-	// Ispis matrice
-//	for (i = 0; i <= sizeOfInputFile2 + 1; i++){
-//		for (j = 0; j <= sizeOfInputFile1 + 1; j++){
-//			if ((i == 0 && j == 0) || (i == 0 && j == 1) || (i == 1 && j == 0)){
-//				printf("   ");
-//				continue;
-//			}
-//			else if (i == 0)
-//				printf("%3c", inputGenome1[j - 2]);
-//			else if (j == 0)
-//				printf("%3c", inputGenome2[i - 2]);
-//			else
-//				printf("%3d", matrixOfSimilarity[i - 1][j - 1]);
+//	for (int i = 0; i < rows; i++){
+//		for (int j = 0; j < columns; j++){
+//			matrixOfSimilarity[i][j] = i + j;
 //		}
-//		printf("\n");
 //	}
 
+	fillMatrix((int *) matrixOfSimilarity, rows, columns, weightMatch, weightMismatch, weightInsertion, weightDeletion, inputGenome1, inputGenome2);
+	printMatrix((int *)matrixOfSimilarity, rows, columns, inputGenome1, inputGenome2);
 
+	 //Ispis matrice
+//		for (int i = 0; i <= sizeOfInputFile2 + 1; i++){
+//			for (int j = 0; j <= sizeOfInputFile1 + 1; j++){
+//				if ((i == 0 && j == 0) || (i == 0 && j == 1) || (i == 1 && j == 0)){
+//					printf("   ");
+//					continue;
+//				}
+//				else if (i == 0)
+//					printf("%3c", inputGenome1[j - 2]);
+//				else if (j == 0)
+//					printf("%3c", inputGenome2[i - 2]);
+//				else
+//					printf("%3d", matrixOfSimilarity[i - 1][j - 1]);
+//			}
+//			printf("\n");
+//		}
 
 	fclose(fileInput1);
 	fclose(fileInput2);
