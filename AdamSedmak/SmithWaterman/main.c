@@ -1,4 +1,11 @@
-#include "main.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct trace{
+	int score, row,col;
+	char direction;			// direction of move (0 - initial value, 1 - diagonal, 2 - up, 3 - left)
+};
 
 
 /*	This function counts the number of bytes in a given file without the first line
@@ -116,7 +123,7 @@ void printMatrix(int* matrix, int rows, int cols, char* inputGenome1, char* inpu
 
 int	calculateDirection(int diagonal, int left, int up, int wMismatch, int wDeletion, int wInsertion){
 	int max;
-	max = ((diagonal - wMismatch) >= (left - wDeletion)) ? (((diagonal - wMismatch) >= (up - wInsertion)) ? 0 : 2) : (((left - wDeletion) >= (up - wInsertion)) ? 1 : 2 );
+	max = ((diagonal - wMismatch) >= (up - wInsertion)) ? (((diagonal - wMismatch) >= (left - wDeletion)) ? 0 : 2) : (((up - wInsertion) >= (left - wDeletion)) ? 1 : 2 );
 	return max;
 }
 
@@ -153,16 +160,16 @@ int* fillMatrix(int* matrix, int rows, int cols, int wMatch, int wMismatch, int 
 				matrix[i * cols + j] =  0;
 				continue;
 			}
-			if (inputGenome1[j] == inputGenome2[i]){
+			if (inputGenome1[j-1] == inputGenome2[i-1]){
 				matrix[i * cols + j] = matrix[(i-1) * cols + (j-1)] + wMatch;
 			} else {
 				direction = calculateDirection(matrix[(i-1)*cols + (j-1)], matrix[i*cols + (j-1)], matrix[(i-1)*cols + j], wMismatch, wDeletion, wInsertion);
 				if (direction == 0)
 					matrix[i * cols + j] = roundToZero(matrix[(i-1) * cols + (j-1)], wMismatch);
 				else if (direction == 1)
-					matrix[i * cols + j] = roundToZero(matrix[i * cols + (j-1)], wDeletion);
-				else
 					matrix[i * cols + j] = roundToZero(matrix[(i-1) * cols + j], wInsertion);
+				else
+					matrix[i * cols + j] = roundToZero(matrix[i * cols + (j-1)], wDeletion);
 			}
 			if (matrix[i * cols + j] > maxNumber[0]){
 				maxNumber[0] = matrix[i * cols + j];
@@ -180,6 +187,13 @@ int* fillMatrix(int* matrix, int rows, int cols, int wMatch, int wMismatch, int 
 	}
 	return maxNumber;
 }
+
+void traceback(struct trace *trace, int* matrix, int initValue, int initRow, int initColumn){
+
+
+
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -251,34 +265,19 @@ int main(int argc, char *argv[]) {
 	int columns = sizeOfInputFile1 + 1;
 	int matrixOfSimilarity[rows][columns];
 	int *maxAlign;
-
-//	for (int i = 0; i < rows; i++){
-//		for (int j = 0; j < columns; j++){
-//			matrixOfSimilarity[i][j] = i + j;
-//		}
-//	}
+	struct trace *trace = malloc(sizeof(trace));
 
 	maxAlign = fillMatrix((int *) matrixOfSimilarity, rows, columns, weightMatch, weightMismatch, weightInsertion, weightDeletion, inputGenome1, inputGenome2);
 	printMatrix((int *)matrixOfSimilarity, rows, columns, inputGenome1, inputGenome2);
 
-	printf("Maximum number: %5d; Location: Row %5d, Column %5d", maxAlign[0], maxAlign[1], maxAlign[2]);
+	trace->score = maxAlign[0];
+	trace->row = maxAlign[1];
+	trace->col = maxAlign[2];
+	trace->direction = 0;
 
-	 //Ispis matrice
-//		for (int i = 0; i <= sizeOfInputFile2 + 1; i++){
-//			for (int j = 0; j <= sizeOfInputFile1 + 1; j++){
-//				if ((i == 0 && j == 0) || (i == 0 && j == 1) || (i == 1 && j == 0)){
-//					printf("   ");
-//					continue;
-//				}
-//				else if (i == 0)
-//					printf("%3c", inputGenome1[j - 2]);
-//				else if (j == 0)
-//					printf("%3c", inputGenome2[i - 2]);
-//				else
-//					printf("%3d", matrixOfSimilarity[i - 1][j - 1]);
-//			}
-//			printf("\n");
-//		}
+	traceback(trace, (int *) matrixOfSimilarity, maxAlign[0], maxAlign[1], maxAlign[2]);
+
+	printf("Maximum number: %5d; Location: Row %5d, Column %5d\n", trace->score, maxAlign[1], maxAlign[2]);
 
 	fclose(fileInput1);
 	fclose(fileInput2);

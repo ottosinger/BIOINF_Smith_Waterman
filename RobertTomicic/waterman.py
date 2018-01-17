@@ -2,28 +2,31 @@ import sys
 def printaj(table):
     for i in range(len(table)):
         for j in range(len(table[i])):
-		sys.stdout.write(str(table[i][j])+" ")
-	sys.stdout.flush()
-        print()
-        
-def traceback(table,globmax,x,y):
+		sys.stdout.write('{0: <3}'.format(str(table[i][j])+" ")   )
+	sys.stdout.flush
+        print('')
+def traceback(table,globmax,x,y,row):
     indexes=[]
+    result=[]
     i=x
     j=y
     while(table[i][j]!=0):
         indexes.append([i,j])
-        if( (table[i-1][j-1]+match==table[i][j]) or  (table[i-1][j-1]+missmatch==table[i][j]) ):
-            i-=1
+        if( (table[i-1][j-1]+match==table[i][j]) or (table[i-1][j-1]+missmatch==table[i][j]) ):
+            result.append(row[j])
+	    i-=1
             j-=1
         elif(table[i-1][j]+insert==table[i][j]):
+	    result.append("-")
             i=-1
         elif(table[i][j-1]+delete==table[i][j]):
             j=-1
         else:
             print("error")
             return 0
-    indexes.append([i,j])
-    return(indexes)
+    result.reverse()
+    print(indexes)
+    return(result)
 
 #unix read file
 print(sys.argv)
@@ -40,7 +43,6 @@ with open(filename) as fp:
 
 print(filename+" has")
 print(firstrow)
-
 print("-----------------")
 
 filenamee = sys.argv[-2]
@@ -55,7 +57,7 @@ with open(filenamee) as fp2:
         ii+=1
 print(filenamee+" has")
 print(secondrow)
-
+print("-----------------")
 
 delete=-10
 insert=-10
@@ -92,9 +94,11 @@ for i in range(1,len(firstrow)):
             maxx=i
             maxy=j
             
-rezz=traceback(table,globmax,maxx,maxy)
-prviporedani=[]
-drugiporedani=[]    
+rezz=traceback(table,globmax,maxx,maxy,firstrow)
+print(globmax)
 printaj(table)
 print(rezz)
+
+	
+print("##maf version=1")	
 sys.exit()
