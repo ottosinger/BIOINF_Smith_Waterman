@@ -65,17 +65,27 @@ public class Main {
 						hMatrix[i][j] = score;
 					}
 				}
-				
+				for (int i = 0; i < secondGenome.length; i++) {
+					System.out.print(secondGenome[i] + " ");
+				}
+				System.out.println("\n");
+				for(int i = 0; i < a; i++) {
+					for (int j = 0; j<b; j++) {
+						System.out.print(hMatrix[i][j] + " ");
+					}
+					System.out.println("\n");
+				}
 				System.out.println("Score:" + maxScore + "MaxX:" + maxI + "MaxY:" + maxJ);
 				
 				List<Integer[]> elementList = new ArrayList<>();
 				
 				
-				Integer[] max = new Integer[3];
+				Integer[] max = new Integer[4];
 				int weight[] = {match, mismatch, insert, delete};
 				max[0] = maxScore;
 				max[1] = maxI;
 				max[2] = maxJ;
+				max[3] = 10;
 				elementList.add(max);
 				
 				int x = maxI;
