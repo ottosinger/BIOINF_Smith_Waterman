@@ -45,11 +45,28 @@ namespace SmithWaterman
             PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
             List<int[]> jea = Traceback(InitialMatrix, maxKnowledge, weight);
+            //array has 4 values: {element score, element x value, element y value, direction (ACTION) of move from 
+            //previous [actually later one in reverse list] (10-diagonal-match_PREPISI, 11-diagonal missmatch_SAMO DRUGI NAPISI,
+            //2 -left-deletion_OBRISI, 3-up-insertion_crtica)}
+
+
+
+            if (firstGenome[jea.Last()[2]] != secondGenome[jea.Last()[1]])
+            {
+                jea.Remove(jea.Last());
+            }
 
             jea.Reverse();
 
-            Console.WriteLine(firstGenome);
-            Console.WriteLine(secondGenome);
+            
+            int startOfAlignmentFirstGenome = jea.First()[2];
+            int startOfAlignmentSecondGenome = jea.First()[1];
+
+            int endOfAlignmentFirstGenome = jea.Last()[2];
+            int endOfAlignmentSecondGenome = jea.Last()[1];
+
+            string alignmentString = getAlignmentString(jea, firstGenome, secondGenome);
+
 
             Console.ReadKey();
         }
@@ -254,9 +271,11 @@ namespace SmithWaterman
             int maxI = maxKnowledge[1];
             int maxJ = maxKnowledge[2];
 
+            int[] maxKnowledgeUpgrade = { maxScore, maxI, maxJ, 10 };//najveci element uvijek je "dijete" match-a, znaci ide 10 unutra
+
             List<int[]> listOfElements = new List<int[]>();
-            //array has 4 values: [element score, element x value, element y value, direction of move from previous(0-initial value, 1-diagonal, 2-left, 3-up)]
-            listOfElements.Add(maxKnowledge);
+            //array has 4 values: [element score, element x value, element y value, direction of move from previous(0-initial value, 10-diagonal-match, 11-diagonal missmatch, 2-left, 3-up)]
+            listOfElements.Add(maxKnowledgeUpgrade);
 
             //diagonal: match / mismatch
             //up: gap in sequence 1
@@ -268,11 +287,20 @@ namespace SmithWaterman
             
             string previousElement = NextMove(Matrix , x+1, y+1, weight);// ove plus jedinice na x i y su zbog prvog reda i stupca nula pa je sve u banani sa indexima
 
-            while (previousElement != "stop" || previousElement != "invalid move")
+            while (previousElement != "stop" && previousElement != "invalid move")
             {
-                if (previousElement == "diagonal")
+                if (previousElement == "diagonal-match" || previousElement == "diagonal-mismatch")
                 {
-                    int[] helper = { Matrix[x+1 - 1, y+1 - 1], x - 1, y - 1, 1 };//DODANO
+                    int[] helper = { Matrix[x + 1 - 1, y + 1 - 1], x - 1, y - 1, 0};//DODANO
+
+                    if (previousElement == "diagonal-match")
+                    {
+                        helper[3] = 10;//MATCH
+                    }
+                    else
+                    {
+                        helper[3] = 11;//MISMATCH
+                    };
                     listOfElements.Add(helper);
                     x--;
                     y--;
@@ -324,7 +352,16 @@ namespace SmithWaterman
             {
                 if (diagonal != 0)
                 {
-                    return "diagonal";
+                    if (diagonal + match == current)
+                    {
+                        return "diagonal-match";
+                    }
+                    else //(diagonal + mismatch == current)
+                    {
+                        return "diagonal-mismatch";
+                    }
+                    //OVI PODUVJETI GORE ZAMIJENILI OVAJ DOLJE
+                    //return "diagonal";
                 }
                 else
                 {
@@ -365,6 +402,47 @@ namespace SmithWaterman
             }
         }
 
+
+        public static string getAlignmentString(List<int[]> jea, string firstGenome, string secondGenome)
+        {
+            string alignment = "";
+
+            foreach (var item in jea)
+            {
+                if (item[3] == 10)//MATCH
+                {
+                    int yCoord = item[1];
+                    alignment += secondGenome[yCoord];
+                }
+                else
+                {
+                    if (item[3] == 11)//MISMATCH
+                    {
+                        int yCoord = item[1] + 1;//+1 zbog prvog reda i stupca sa nulama
+                        alignment += secondGenome[yCoord].ToString().ToLower();
+                    }
+                    else
+                    {
+                        if (item[3] == 2)//DELETION
+                        {
+                            alignment += ".";
+                        }
+                        else
+                        {
+                            if (item[3] == 3)//INSERTION
+                            {
+                                alignment += "-";
+                            }
+                            else
+                            {
+                                Console.WriteLine("error plz help");
+                            }
+                        }
+                    }
+                }
+            }//foreach
+            return alignment;
+        }
 
 
 
