@@ -12,6 +12,24 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class Main {
+	
+	public static char[] input(String str) throws IOException{
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print("Enter" + " " + str + " " + "Genome File name");
+		System.out.println("\n");
+        String frst = br.readLine();
+		Path path = Paths.get(frst);
+		
+		try {
+		      char[] genome = readFile(path, Charset.defaultCharset()).toCharArray();
+		      return genome;
+		} catch (IOException e) {
+		      System.out.println(e);
+		     return input(str);
+		    }
+
+	}
+	
 	public static void main(String [ ] args) throws IOException
 	{
 		int similarity = 0;
@@ -24,23 +42,10 @@ public class Main {
 		int maxScore = 0;
 		int maxI = 0;
 		int maxJ = 0;
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("Enter First Genome File name");
-		System.out.println("\n");
-        String frst = br.readLine();
-        System.out.print("Enter Second Genome File name");
-		System.out.println("\n");
-        String scnd = br.readLine();
-		Path aPath = Paths.get(frst);
-		Path bPath = Paths.get(scnd);
-		
-		
-		
-		 try {
 
-		      char[] firstGenome = readFile(aPath, Charset.defaultCharset()).toCharArray();
+		      char[] firstGenome = input("First");
 
-		      char[] secondGenome = readFile(bPath, Charset.defaultCharset()).toCharArray();
+		      char[] secondGenome = input("Second");
 		      
 		      System.out.println(firstGenome);
 		      System.out.println(secondGenome);
@@ -76,13 +81,18 @@ public class Main {
 						hMatrix[i][j] = score;
 					}
 				}
-				System.out.print("P ");
+				System.out.print("  P ");
 
-				for (int i = 0; i < secondGenome.length; i++) {
-					System.out.print(secondGenome[i] + " ");
+				for (int i = 0; i < firstGenome.length; i++) {
+					System.out.print(firstGenome[i] + " ");
 				}
 				System.out.println("\n");
+				System.out.print("S ");
+
 				for(int i = 0; i < b+1; i++) {
+					if (i!=0 && i != b+1) {
+						System.out.print(secondGenome[i-1] + " ");
+					}
 					for (int j = 0; j<a+1; j++) {
 						System.out.print(hMatrix[i][j] + " ");
 					}
@@ -163,10 +173,6 @@ public class Main {
 				String alignStr = getAlignStr(elementList, firstGenome, secondGenome); 
 				
 				System.out.print(alignStr);
-
-		    } catch (IOException e) {
-		      System.out.println(e);
-		    }
 			
 		
 	}
@@ -175,8 +181,6 @@ public class Main {
 		String align = "";
 		for (Iterator<Integer[]> i = elementList.iterator(); i.hasNext();) {
 		    Integer[] temp = i.next();
-			System.out.println("prvi " + temp[0] + "drugi " + temp[1] + "treci " + temp[2] + "cetvrti " + temp[3]);
-
 		    if (temp[3] == 10) { //match
 		    	int coordinateY = temp[1];
 		    	align += secondGenome[coordinateY];
