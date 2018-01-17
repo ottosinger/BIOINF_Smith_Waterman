@@ -17,7 +17,7 @@ def traceback(table,globmax,x,y,row,row2): #main traceback function determining 
 	    i-=1
             j-=1
 	    continue
-	elif( (table[i-1][j-1]+missmatch==table[i][j])and(row[i]==row2[j]) ):#missmatch
+	elif( (table[i-1][j-1]+missmatch==table[i][j])and(row[i]!=row2[j]) ):#missmatch
 	    result.append(row[i])
 	    i-=1
             j-=1
