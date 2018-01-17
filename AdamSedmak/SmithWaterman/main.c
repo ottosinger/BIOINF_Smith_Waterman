@@ -114,19 +114,71 @@ void printMatrix(int* matrix, int rows, int cols, char* inputGenome1, char* inpu
 	}
 }
 
-void fillMatrix(int* matrix, int rows, int cols, int wMatch, int wMismatch, int wInsertion, int wDeletion, char* inputGenome1, char* inputGenome2){
+int	calculateDirection(int diagonal, int left, int up, int wMismatch, int wDeletion, int wInsertion){
+	int max;
+	max = ((diagonal - wMismatch) >= (left - wDeletion)) ? (((diagonal - wMismatch) >= (up - wInsertion)) ? 0 : 2) : (((left - wDeletion) >= (up - wInsertion)) ? 1 : 2 );
+	return max;
+}
+
+int roundToZero(int number, int weight){
+	int result;
+	result = number + weight;
+	if (result < 0)
+		return 0;
+	else
+		return result;
+}
+
+char checkForMax(int current[], int tempRow, int tempCol){
+	int sum1 = current[1] + current[2];
+	int sum2 = tempCol + tempRow;
+	if (sum1 < sum2)
+		return 0;
+	if (sum1 == sum2)
+		if (current[1] < tempRow)
+			return 0;
+	return 1;
+}
+
+int* fillMatrix(int* matrix, int rows, int cols, int wMatch, int wMismatch, int wInsertion, int wDeletion, char* inputGenome1, char* inputGenome2){
+
+	int direction;
+	static int maxNumber[] = {0, 0, 0};
+
 	for(int i = 0; i < rows; i++){
 		for (int j = 0; j < cols; j++){
 
 			// Fill first line and column with zeros
-			//if((i == 0) || (j == 0))
-				matrix[i * cols + j] =  i + j;
-
-
+			if((i == 0) || (j == 0)){
+				matrix[i * cols + j] =  0;
+				continue;
+			}
+			if (inputGenome1[j] == inputGenome2[i]){
+				matrix[i * cols + j] = matrix[(i-1) * cols + (j-1)] + wMatch;
+			} else {
+				direction = calculateDirection(matrix[(i-1)*cols + (j-1)], matrix[i*cols + (j-1)], matrix[(i-1)*cols + j], wMismatch, wDeletion, wInsertion);
+				if (direction == 0)
+					matrix[i * cols + j] = roundToZero(matrix[(i-1) * cols + (j-1)], wMismatch);
+				else if (direction == 1)
+					matrix[i * cols + j] = roundToZero(matrix[i * cols + (j-1)], wDeletion);
+				else
+					matrix[i * cols + j] = roundToZero(matrix[(i-1) * cols + j], wInsertion);
+			}
+			if (matrix[i * cols + j] > maxNumber[0]){
+				maxNumber[0] = matrix[i * cols + j];
+				maxNumber[1] = i;
+				maxNumber[2] = j;
+			} else if (matrix[i * cols + j] == maxNumber[0]){
+				char decision = checkForMax(maxNumber, i, j);
+				if (decision){
+					maxNumber[0] = matrix[i * cols + j];
+					maxNumber[1] = i;
+					maxNumber[2] = j;
+				}
+			}
 		}
-
 	}
-
+	return maxNumber;
 }
 
 int main(int argc, char *argv[]) {
@@ -198,6 +250,7 @@ int main(int argc, char *argv[]) {
 	int rows = sizeOfInputFile2 + 1;
 	int columns = sizeOfInputFile1 + 1;
 	int matrixOfSimilarity[rows][columns];
+	int *maxAlign;
 
 //	for (int i = 0; i < rows; i++){
 //		for (int j = 0; j < columns; j++){
@@ -205,8 +258,10 @@ int main(int argc, char *argv[]) {
 //		}
 //	}
 
-	fillMatrix((int *) matrixOfSimilarity, rows, columns, weightMatch, weightMismatch, weightInsertion, weightDeletion, inputGenome1, inputGenome2);
+	maxAlign = fillMatrix((int *) matrixOfSimilarity, rows, columns, weightMatch, weightMismatch, weightInsertion, weightDeletion, inputGenome1, inputGenome2);
 	printMatrix((int *)matrixOfSimilarity, rows, columns, inputGenome1, inputGenome2);
+
+	printf("Maximum number: %5d; Location: Row %5d, Column %5d", maxAlign[0], maxAlign[1], maxAlign[2]);
 
 	 //Ispis matrice
 //		for (int i = 0; i <= sizeOfInputFile2 + 1; i++){
