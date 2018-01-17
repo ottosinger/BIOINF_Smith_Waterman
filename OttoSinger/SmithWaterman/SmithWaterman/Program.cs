@@ -38,6 +38,8 @@ namespace SmithWaterman
 
             PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
+            List<int[]> jea = Traceback(InitialMatrix, maxKnowledge);
+
             Console.ReadKey();
         }
 
@@ -117,7 +119,7 @@ namespace SmithWaterman
         {
             int lengthOfFirstGenome = firstGenome.Length;
             int lengthOfSecondGenome = secondGenome.Length;
-            int[,] InitialMatrix = new int[lengthOfSecondGenome+1, lengthOfFirstGenome+1];  //dodano +1 na size
+            int[,] InitialMatrix = new int[lengthOfSecondGenome+1, lengthOfFirstGenome+1];  //dodano +1 na size zbog 1 reda i 1 stupca sa nulama
 
             for (int i = 0; i < lengthOfSecondGenome+1; i++)
             {
@@ -128,7 +130,6 @@ namespace SmithWaterman
             }
             return InitialMatrix;
         }
-
 
         public static void PrintMatrix(int lengthOfFirstGenome, int lengthOfSecondGenome, int[,] Matrix, string firstGenome, string SecondGenome)
         {
@@ -191,6 +192,7 @@ namespace SmithWaterman
                     Matrix[i,j] = score;
                 }
             }
+
             int[] maxKnowledge = { maxScore, maxI, maxJ };
             return maxKnowledge;
         }
@@ -219,6 +221,7 @@ namespace SmithWaterman
             int leftValue = Matrix[i, j - 1] + deletion;//NISAM SIGURAN KOJI JE INSERTION A KOJI DELETION
 
             int score = CalculateMaximum(0, diagonalValue, upValue, leftValue);//IMPLEMENTIRAJ MAKSIMALNU FUNKCIJU ZA 4 PARAMETRA
+
             return score;
         }
 
@@ -231,5 +234,122 @@ namespace SmithWaterman
 
 
 
-        }//class program
+
+
+
+
+        public static List<int[]> Traceback(int[,] Matrix, int[] maxKnowledge)
+        {
+            int maxScore = maxKnowledge[0];
+            int maxI = maxKnowledge[1];
+            int maxJ = maxKnowledge[2];
+
+            List<int[]> listOfElements = new List<int[]>();
+            //array has 4 values: [element score, element x value, element y value, direction of move from previous(0-initial value, 1-diagonal, 2-left, 3-up)]
+            listOfElements.Add(maxKnowledge);
+
+            //diagonal: match / mismatch
+            //up: gap in sequence 1
+            //left: gap in sequence 2
+
+            //start position of traceback
+            int x = maxI;
+            int y = maxJ;
+            
+            string previousElement = NextMove(Matrix , x+1, y+1);// ove plus jedinice na x i y su zbog prvog reda i stupca nula pa je sve u banani sa indexima
+
+            while (previousElement != "stop" || previousElement != "invalid move")
+            {
+                if (previousElement == "diagonal")
+                {
+                    int[] helper = { Matrix[x+1 - 1, y+1 - 1], x - 1, y - 1, 1 };//DODANO
+                    listOfElements.Add(helper);
+                    x--;
+                    y--;
+                }
+                else
+                {
+                    if (previousElement == "up")
+                    {
+                        int[] helper = { Matrix[x+1 - 1, y+1], x - 1, y, 3 }; //DODANO
+                        listOfElements.Add(helper);
+                        x--;
+                    }
+                    else
+                    {
+                        if (previousElement == "left")
+                        {
+                            int[] helper = { Matrix[x+1, y+1 - 1], x, y - 1, 2 };//DODANO
+                            listOfElements.Add(helper);
+                            y--;
+                        }
+                        else
+                        {
+                            //Console.WriteLine("end of matrix (genome) reached.");
+                            break;
+                        }
+                    }
+                }
+                previousElement = NextMove(Matrix, x+1, y+1);// ove plus jedinice na x i y su zbog prvog reda i stupca nula pa je sve u banani sa indexima
+            }
+            return listOfElements;
+        }
+
+
+        public static string NextMove(int[,] Matrix, int x, int y)
+        {
+            int diagonal = Matrix[x - 1, y - 1];
+            int up = Matrix[x - 1, y];
+            int left = Matrix[x, y - 1];
+
+            if (diagonal >= up && diagonal >= left)
+            {
+                if (diagonal != 0)
+                {
+                    return "diagonal";
+                }
+                else
+                {
+                    return "stop";
+                }
+            }
+            else
+            {
+                if (up >= diagonal && up >= left)
+                {
+                    if (up != 0)
+                    {
+                        return "up";
+                    }
+                    else
+                    {
+                        return "stop";
+                    }
+                }
+                else
+                {
+                    if (left >= diagonal && left >= up)
+                    {
+                        if (up != 0)
+                        {
+                            return "left";
+                        }
+                        else
+                        {
+                            return "stop";
+                        }
+                    }
+                    else
+                    {
+                        return "invalid move";
+                    }
+                }
+            }
+        }
+
+
+
+
+
+    }//class program
 }//namespace
