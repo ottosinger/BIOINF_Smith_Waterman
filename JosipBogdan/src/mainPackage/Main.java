@@ -76,12 +76,14 @@ public class Main {
 						hMatrix[i][j] = score;
 					}
 				}
+				System.out.print("P ");
+
 				for (int i = 0; i < secondGenome.length; i++) {
 					System.out.print(secondGenome[i] + " ");
 				}
 				System.out.println("\n");
-				for(int i = 0; i < b; i++) {
-					for (int j = 0; j<a; j++) {
+				for(int i = 0; i < b+1; i++) {
+					for (int j = 0; j<a+1; j++) {
 						System.out.print(hMatrix[i][j] + " ");
 					}
 					System.out.println("\n");
