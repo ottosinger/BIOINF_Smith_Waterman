@@ -8,18 +8,26 @@ import java.util.*;
 import java.util.List;
 import java.util.Arrays;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 
 public class Main {
-	
+	static String firstFileName;
+	static String secondFileName;
 	public static char[] input(String str) throws IOException{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Enter" + " " + str + " " + "Genome File name");
 		System.out.println("\n");
         String frst = br.readLine();
 		Path path = Paths.get(frst);
-		
+		if (str == "First") {
+			firstFileName = frst;
+		}else {
+			secondFileName = frst;
+		}
 		try {
 		      char[] genome = readFile(path, Charset.defaultCharset()).toCharArray();
 		      return genome;
@@ -37,8 +45,6 @@ public class Main {
 		int insert = -1;
 		int match = 1;
 		int mismatch = -1;
-
-		
 		int maxScore = 0;
 		int maxI = 0;
 		int maxJ = 0;
@@ -173,10 +179,22 @@ public class Main {
 				String alignStr = getAlignStr(elementList, firstGenome, secondGenome); 
 				
 				System.out.print(alignStr);
-			
-		
+				String str = "##maf version=1 scoring=" + firstFileName;
+				str += System.lineSeparator();
+				str += "a score=" + maxScore;
+				str += System.lineSeparator();
+				str += "s " + secondFileName + " " + secondGenomeAlingStart + " " + b + " " + secondGenomeAlignEnd + " " + alignStr; 
+				write(str);
 	}
 	
+	public static void write(String str) 
+			  throws IOException {
+			    PrintWriter writer = new PrintWriter("result.txt");
+			    writer.write(str);
+			     
+			    writer.close();
+			}
+
 	public static String getAlignStr(List<Integer[]> elementList, char[] firstGenome, char[] secondGenome) {
 		String align = "";
 		for (Iterator<Integer[]> i = elementList.iterator(); i.hasNext();) {

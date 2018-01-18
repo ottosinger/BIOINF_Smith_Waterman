@@ -1,0 +1,3 @@
+##maf version=1 scoring=a.txt
+a score=4
+s b.txt 4 7 6 ATG
