@@ -23,9 +23,9 @@ def traceback(table,globmax,x,y,row,row2):#main traceback function determining p
 	topLeftValue=0
 	# 4 IFs to determine existsing paths
         if( (table[i-1][j-1]+match==table[i][j])and(row[i]==row2[j]) ):#match path
-		topLeftValue=table[i-1][j-1];
+		topLeft=table[i-1][j-1];
 	if( (table[i-1][j-1]+missmatch==table[i][j])and(row[i]!=row2[j]) ):#missmatch path
-		topLeftValue=table[i-1][j-1];
+		topLeft=table[i-1][j-1];
         if(table[i-1][j]+insert==table[i][j]):#top path
 	    topValue=table[i-1][j];
         if(table[i][j-1]+delete==table[i][j]):#left path
@@ -35,9 +35,11 @@ def traceback(table,globmax,x,y,row,row2):#main traceback function determining p
 		result.append(row[i])
 		i-=1
 		j-=1
+		continue
 	elif (topValue>=leftValue):	#top path chosen
 		result.append(row[i])
-		i-=1		
+		i-=1
+		continue
 	else:				#left path chosen
 		result.append('-')
 		j-=1
