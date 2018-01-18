@@ -1,3 +1,3 @@
 ##maf version=1 scoring=test1.txt
-a score=373
-s test2.txt 4262 4209 3809 TCAA
+a score=1612
+s test2.txt 17072 16836 16436 TCAA

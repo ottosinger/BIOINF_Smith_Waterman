@@ -42,6 +42,8 @@ public class Main {
 	
 	public static void main(String [ ] args) throws IOException
 	{
+		System.gc();
+		long time1 = System.currentTimeMillis();
 		int similar = 0;
 		int delete = -1;
 		int insert = -1;
@@ -60,10 +62,11 @@ public class Main {
 		      String tempStringTwo = new String(secondGenome);
 		      tempStringTwo.replaceAll("\\s+",""); //uklanjanje nepotrebnih znakova
 		      secondGenome = tempStringTwo.toCharArray();
-		      calculateUsedMemory();
-		      //System.out.println("");
-		      //System.out.println(firstGenome.length);
-		      ////System.out.println(secondGenome.length);
+		      //calculateUsedMemory();
+		      System.out.println("");
+		      System.out.println(firstGenome.length);
+		      System.out.println(secondGenome.length);
+		      System.out.println("");
 		      int a = firstGenome.length;
 		      int b = secondGenome.length;
 		      System.out.println("");
@@ -194,7 +197,11 @@ public class Main {
 				str += System.lineSeparator();
 				str += "s " + secondFileName + " " + secondGenomeAlingStart + " " + b + " " + secondGenomeAlignEnd + " " + alignStr; 
 				write(str);
-				
+				long time2 = System.currentTimeMillis();
+				long time = time2 - time1;
+				System.out.print("vrijeme izvodjenja je" + time);
+				flag = false;
+
 	}
 	
 	public static void write(String str) // stvaranje tekstualnog dokumenta sa konacnim rezultatima
