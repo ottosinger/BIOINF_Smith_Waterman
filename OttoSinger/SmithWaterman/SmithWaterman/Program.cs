@@ -40,19 +40,19 @@ namespace SmithWaterman
             string firstGenome = ParseFile(bothFiles[0]);
             string secondGenome = ParseFile(bothFiles[1]);
 
-            PrintGenome(firstGenome);
+            //PrintGenome(firstGenome);
             Console.WriteLine("length of 1st genome main programme: " + firstGenome.Length);
             //PrintNucleotidesOfGenome(firstGenome);
 
-            PrintGenome(secondGenome);
+            //PrintGenome(secondGenome);
             Console.WriteLine("length of 2nd genome main programme: " + secondGenome.Length);
             //PrintNucleotidesOfGenome(secondGenome);
 
             
             //build a matrix, fill with zeros
             int[,] InitialMatrix = InitiateMatrix(firstGenome, secondGenome);
-
-            PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
+            
+            //PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
             //build a weighted matrix, return coordinates and value of max score
             int[] maxKnowledge = CalculateMatrix(firstGenome, secondGenome, InitialMatrix, weight);
@@ -60,7 +60,7 @@ namespace SmithWaterman
             int maxI = maxKnowledge[1];
             int maxJ = maxKnowledge[2];
 
-            PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
+            //PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
             //get reversed path with values, coordinates and route
             List<int[]> jea = Traceback(InitialMatrix, maxKnowledge, weight);
@@ -93,9 +93,9 @@ namespace SmithWaterman
             string output1 = "# " + nameOfFirstGenome + "\n";
 
             //write results on console
-            Console.WriteLine(output1);
-            Console.WriteLine(output2);
-            Console.WriteLine(output3);
+            //Console.WriteLine(output1);
+            //Console.WriteLine(output2);
+            //Console.WriteLine(output3);
 
             //write results to .maf file
             string[] linesForMafOutput = { output1, "" ,output2, output3 };
@@ -111,8 +111,10 @@ namespace SmithWaterman
 
         public static string[] ReadFiles()
         {
-            string firstFile = System.IO.File.ReadAllText(@"C:\Users\ottos\Downloads\Chrome\testni1.fa");
-            string secondFile = System.IO.File.ReadAllText(@"C:\Users\ottos\Downloads\Chrome\testni2.fa");
+            string firstFile = System.IO.File.ReadAllText(@"C:\Users\ottos\Downloads\Chrome\Acetobacter1M1Copy.txt");
+            //string firstFile = System.IO.File.ReadAllText(@"C:\Users\ottos\Downloads\Chrome\testni1.fa");
+            string secondFile = System.IO.File.ReadAllText(@"C:\Users\ottos\Downloads\Chrome\Achromobacter2M8Copy.txt");
+            //string secondFile = System.IO.File.ReadAllText(@"C:\Users\ottos\Downloads\Chrome\testni2.fa");
             string[] bothFiles = { firstFile, secondFile };
             return bothFiles;
         }
@@ -327,21 +329,21 @@ namespace SmithWaterman
             int x = maxI;
             int y = maxJ;
             
-            string previousElement = NextMove(Matrix , x+1, y+1, weight);// ove plus jedinice na x i y su zbog prvog reda i stupca nula pa je sve u banani sa indexima
+            string previousElement = NextMove(Matrix , x+1, y+1, weight);//DODANO  +1 ZBOG REDA I STUPCA NULA
 
             while (previousElement != "stop" && previousElement != "stop-zeros")
             {
                 if (previousElement == "diagonal-match" || previousElement == "diagonal-mismatch")
                 {
-                    int[] helper = { Matrix[x + 1 - 1, y + 1 - 1], x - 1, y - 1, 0};//DODANO
+                    int[] helper = { Matrix[x + 1 - 1, y + 1 - 1], x - 1, y - 1, 0};//DODANO +1 ZBOG REDA I STUPCA NULA
 
                     if (previousElement == "diagonal-match")
                     {
-                        helper[3] = 10;//MATCH
+                        helper[3] = 10;//10 = MATCH
                     }
                     else
                     {
-                        helper[3] = 11;//MISMATCH
+                        helper[3] = 11;//11 = MISMATCH
                     };
                     listOfElements.Add(helper);
                     x--;
@@ -349,17 +351,17 @@ namespace SmithWaterman
                 }
                 else
                 {
-                    if (previousElement == "up")
+                    if (previousElement == "up")//3 insert
                     {
-                        int[] helper = { Matrix[x+1 - 1, y+1], x - 1, y, 3 }; //DODANO
+                        int[] helper = { Matrix[x+1 - 1, y+1], x - 1, y, 3 }; //DODANO +1 ZBOG REDA I STUPCA NULA
                         listOfElements.Add(helper);
                         x--;
                     }
                     else
                     {
-                        if (previousElement == "left")
+                        if (previousElement == "left")//2 delete
                         {
-                            int[] helper = { Matrix[x+1, y+1 - 1], x, y - 1, 2 };//DODANO
+                            int[] helper = { Matrix[x+1, y+1 - 1], x, y - 1, 2 };//DODANO +1 ZBOG REDA I STUPCA NULA
                             listOfElements.Add(helper);
                             y--;
                         }
@@ -370,7 +372,7 @@ namespace SmithWaterman
                         }
                     }
                 }
-                previousElement = NextMove(Matrix, x+1, y+1, weight);// ove plus jedinice na x i y su zbog prvog reda i stupca nula pa je sve u banani sa indexima
+                previousElement = NextMove(Matrix, x+1, y+1, weight);//DODANO +1 ZBOG REDA I STUPCA NULA
             }
             return listOfElements;
         }
@@ -463,6 +465,7 @@ namespace SmithWaterman
         {
             string alignment = "";
 
+            //every "score" with other informations iterate in list to match with location in genome
             foreach (var item in jea)
             {
                 if (item[3] == 10)//MATCH
@@ -481,7 +484,7 @@ namespace SmithWaterman
                     {
                         if (item[3] == 2)//DELETION
                         {
-                            alignment += ".";
+                            alignment += "";//prije bilo za testiranje alignment += ".";
                         }
                         else
                         {
@@ -496,7 +499,7 @@ namespace SmithWaterman
                         }
                     }
                 }
-            }//foreach
+            }//end of foreach
             return alignment;
         }
 
