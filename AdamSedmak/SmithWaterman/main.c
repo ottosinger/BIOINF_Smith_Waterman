@@ -54,7 +54,6 @@ int countFileSize(FILE *fp){
 int lineSize(FILE *fp){
 	char c;
 	int lineSize;
-	fpos_t pos;
 
 	lineSize = 0;
 
@@ -65,9 +64,6 @@ int lineSize(FILE *fp){
 			break;
 	}
 
-	// Memorize current position so we can return file pointer to the start of the important part of the file
-	fgetpos(fp, &pos);
-
 	// Iterate until end of line
 	for(;;){
 		c = fgetc(fp);
@@ -77,7 +73,7 @@ int lineSize(FILE *fp){
 	}
 
 	// Return the file pointer to the memorized position
-	fsetpos(fp, &pos);
+	rewind(fp);
 	return lineSize;
 }
 
@@ -259,6 +255,10 @@ int main(int argc, char *argv[]) {
 	int lineSize1, lineSize2;
 	char* inputGenome1;
 	char* inputGenome2;
+	char firstLine1[100];
+	char firstLine2[100];
+	char *parseLine1;
+	char *parseLine2;
 
 	if (argc != 8) {
 		printf("ERROR: Invalid number of arguments!\n");
@@ -286,6 +286,20 @@ int main(int argc, char *argv[]) {
 	lineSize1 = lineSize(fileInput1);
 	lineSize2 = lineSize(fileInput2);
 
+	fgets(firstLine1, sizeof(firstLine1), fileInput1);
+
+	parseLine1 = strtok(firstLine1, ":");
+	parseLine1 = strtok(NULL, ":");
+	parseLine1 = strtok(NULL, ":");
+	printf("%s\n", parseLine1);
+
+	fgets(firstLine2, sizeof(firstLine2), fileInput2);
+
+	parseLine2 = strtok(firstLine2, ":");
+	parseLine2 = strtok(NULL, ":");
+	parseLine2 = strtok(NULL, ":");
+	printf("%s\n", parseLine2);
+
 	printf("Size of a line in file1: %d\n", lineSize1);
 	printf("Size of a line in file2: %d\n", lineSize2);
 
@@ -295,12 +309,16 @@ int main(int argc, char *argv[]) {
 	char line1[lineSize1+1], line2[lineSize2+1];
 
 	while(fgets(line1, sizeof(line1), fileInput1) != NULL){
+		if(line1[0] == '>')
+			break;
 		strcat(inputGenome1, line1);
 	}
 	removeAll(inputGenome1, '\r');
 	removeAll(inputGenome1, '\n');
 
 	while(fgets(line2, sizeof(line2), fileInput2) != NULL){
+		if(line1[0] == '>')
+			break;
 		strcat(inputGenome2, line2);
 	}
 	removeAll(inputGenome2, '\r');
@@ -344,21 +362,35 @@ int main(int argc, char *argv[]) {
 		curTrace = *curTrace.next;
 		n++;
 	}
-	//printf("%d. trace: score - %3d, row - %3d, column: %3d\n", n, curTrace.score, curTrace.row, curTrace.col);
 
+	char alignment[n-1];
 	curTrace = firstTrace;
-
 	n = 1;
 	while(curTrace.next != NULL){
+		alignment[n-1] = curTrace.sign;
 		printf("%c", curTrace.sign);
 		curTrace = *curTrace.next;
 		n++;
 	}
 	printf("\n");
-	//printf("%c\n", curTrace.sign);
+	printf("%s\n", alignment);
+
+	n=0;
+	int count = 0;
+	while(alignment[n] != '\0'){
+		if(alignment[n] != '-')
+			count++;
+		n++;
+	}
+
+	fprintf(fileOutput, "track name=%s\n", parseLine1);
+	fprintf(fileOutput, "##maf version=1\n\n");
+	fprintf(fileOutput, "a score=%d.0\n", lastTrace.score);
+	fprintf(fileOutput, "s %s %d %d + %d %s\n", parseLine2, firstTrace.row, count, sizeOfInputFile2, alignment);
 
 	fclose(fileInput1);
 	fclose(fileInput2);
+	fclose(fileOutput);
 
 	free(inputGenome1);
 	free(inputGenome2);
