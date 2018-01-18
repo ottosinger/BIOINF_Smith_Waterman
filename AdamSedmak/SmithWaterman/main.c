@@ -1,4 +1,4 @@
-/*  Watterman - Eggert algorithm in C code
+/*  Watterman - Eggert algorithm in C
  *  @author: Adam Sedmak
  */
 
@@ -10,7 +10,7 @@ typedef struct trace trace;
 
 struct trace{
 	int score, row, col;
-	char direction;
+	char sign;
 	trace *next;
 	trace *prev;
 
@@ -54,7 +54,6 @@ int countFileSize(FILE *fp){
 int lineSize(FILE *fp){
 	char c;
 	int lineSize;
-	fpos_t pos;
 
 	lineSize = 0;
 
@@ -65,9 +64,6 @@ int lineSize(FILE *fp){
 			break;
 	}
 
-	// Memorize current position so we can return file pointer to the start of the important part of the file
-	fgetpos(fp, &pos);
-
 	// Iterate until end of line
 	for(;;){
 		c = fgetc(fp);
@@ -77,7 +73,7 @@ int lineSize(FILE *fp){
 	}
 
 	// Return the file pointer to the memorized position
-	fsetpos(fp, &pos);
+	rewind(fp);
 	return lineSize;
 }
 
@@ -130,9 +126,9 @@ void printMatrix(int* matrix, int rows, int cols, char* inputGenome1, char* inpu
 	}
 }
 
-char	calculateDirection(int diagonal, int left, int up, int wMismatch, int wDeletion, int wInsertion){
+char calculateNextFill(int diagonal, int left, int up, int wMismatch, int wDeletion, int wInsertion){
 	int max;
-	max = ((diagonal - wMismatch) >= (up - wInsertion)) ? (((diagonal - wMismatch) >= (left - wDeletion)) ? 0 : 2) : (((up - wInsertion) >= (left - wDeletion)) ? 1 : 2 );
+	max = ((diagonal + wMismatch) >= (up + wInsertion)) ? (((diagonal + wMismatch) >= (left + wDeletion)) ? 0 : 2) : (((up + wInsertion) >= (left + wDeletion)) ? 1 : 2 );
 	return max;
 }
 
@@ -172,7 +168,7 @@ int* fillMatrix(int* matrix, int rows, int cols, int wMatch, int wMismatch, int 
 			if (inputGenome1[j-1] == inputGenome2[i-1]){
 				matrix[i * cols + j] = matrix[(i-1) * cols + (j-1)] + wMatch;
 			} else {
-				direction = calculateDirection(matrix[(i-1)*cols + (j-1)], matrix[i*cols + (j-1)], matrix[(i-1)*cols + j], wMismatch, wDeletion, wInsertion);
+				direction = calculateNextFill(matrix[(i-1)*cols + (j-1)], matrix[i*cols + (j-1)], matrix[(i-1)*cols + j], wMismatch, wDeletion, wInsertion);
 				if (direction == 0)
 					matrix[i * cols + j] = roundToZero(matrix[(i-1) * cols + (j-1)], wMismatch);
 				else if (direction == 1)
@@ -200,66 +196,52 @@ int* fillMatrix(int* matrix, int rows, int cols, int wMatch, int wMismatch, int 
 trace traceback(trace *lastTrace, int* matrix, int* initCell, int rows, int cols, int wMatch, int wMismatch, int wInsertion, int wDeletion, char* inputGenome1, char* inputGenome2){
 	int i = initCell[1];
 	int j = initCell[2];
-	int n = 0;
-	char direction = 0;
 	int diagonal, left, up;
 
 	trace* prevTrace = lastTrace;
 
-	//printf("%d, %d, %d, %d, %d\n", &prevTrace, prevTrace->next, prevTrace, lastTrace, &lastTrace);
-
-	//printf("INICIJALNA PIZDARIJA:\n");
-	//printf("%3d, %3d, %3d\n", prevTrace->score, prevTrace->row, prevTrace->col);
-	//printf("----------------------------------------------\n");
-	n++;
-
-	while((matrix[(i-1)*cols + (j-1)] != 0) || (matrix[(i-1)*cols + j] != 0) || (matrix[i*cols + (j-1)] != 0)){
+	while(matrix[i*cols + j] != 0){
 		trace* newTrace = malloc(sizeof(trace));
+		printf("%d, %d\n", i, j);
+		diagonal = 0;
+		left = 0;
+		up = 0;
 
-		diagonal = matrix[(i-1)*cols + (j-1)];
-		left = matrix[i*cols + (j-1)];
-		up = matrix[(i-1)*cols + j];
-		printf("Prosao %d. put\n", n);
+		if ((matrix[i*cols + j] == matrix[(i-1)*cols + (j-1)] + wMatch) && (inputGenome1[j-1] == inputGenome2[i-1]))
+			diagonal = matrix[(i-1)*cols + (j-1)];
+		if ((matrix[i*cols + j] == matrix[(i-1)*cols + (j-1)] + wMismatch) && (inputGenome1[j-1] != inputGenome2[i-1]))
+			diagonal = matrix[(i-1)*cols + (j-1)];
+		if (matrix[i*cols + j] == matrix[(i-1)*cols + j] + wInsertion)
+			up = matrix[(i-1)*cols + j];
+		if (matrix[i*cols + j] == matrix[i*cols + (j-1)] + wDeletion)
+			left = matrix[i*cols + (j-1)];
 
-		if((inputGenome1[j-1] == inputGenome2[i-1])){
-			i -= 1;
-			j -= 1;
-			direction = 0;
-			newTrace->score = diagonal;
+		if((diagonal >= up) && (diagonal >= left)){
+			newTrace->score = matrix[i*cols + j];
 			newTrace->row = i;
 			newTrace->col = j;
-			newTrace->direction = direction;
+			newTrace->sign = inputGenome2[i - 1];
+			i -= 1;
+			j -= 1;
+		} else if (up >= left){
+			newTrace->score = matrix[i*cols + j];
+			newTrace->row = i;
+			newTrace->col = j;
+			newTrace->sign = inputGenome2[i - 1];
+			i -= 1;
 		} else {
-			direction = calculateDirection(diagonal, left, up, wMismatch, wDeletion, wInsertion);
-			if(direction == 0){
-				i -= 1;
-				j -= 1;
-				newTrace->score = diagonal;
-				newTrace->row = i;
-				newTrace->col = j;
-				newTrace->direction = direction;
-			} else if (direction == 1){
-				i -= 1;
-				newTrace->score = up;
-				newTrace->row = i;
-				newTrace->col = j;
-				newTrace->direction = direction;
-			} else if (direction == 2){
-				j -= 1;
-				newTrace->score = left;
-				newTrace->row = i;
-				newTrace->col = j;
-				newTrace->direction = direction;
-			}
+
+			newTrace->score = matrix[i*cols + j];
+			newTrace->row = i;
+			newTrace->col = j;
+			newTrace->sign = '-';
+			j -= 1;
 		}
 		prevTrace->prev = newTrace;
 		newTrace->next = prevTrace;
 		newTrace->prev = NULL;
 
-		//printf("Direction: %d\n", direction);
-		printf("%3d, %3d, %3d\n", newTrace->score, newTrace->row, newTrace->col);
 		prevTrace = newTrace;
-		n++;
 	}
 	return *prevTrace;
 }
@@ -273,6 +255,10 @@ int main(int argc, char *argv[]) {
 	int lineSize1, lineSize2;
 	char* inputGenome1;
 	char* inputGenome2;
+	char firstLine1[100];
+	char firstLine2[100];
+	char *parseLine1;
+	char *parseLine2;
 
 	if (argc != 8) {
 		printf("ERROR: Invalid number of arguments!\n");
@@ -300,6 +286,20 @@ int main(int argc, char *argv[]) {
 	lineSize1 = lineSize(fileInput1);
 	lineSize2 = lineSize(fileInput2);
 
+	fgets(firstLine1, sizeof(firstLine1), fileInput1);
+
+	parseLine1 = strtok(firstLine1, ":");
+	parseLine1 = strtok(NULL, ":");
+	parseLine1 = strtok(NULL, ":");
+	printf("%s\n", parseLine1);
+
+	fgets(firstLine2, sizeof(firstLine2), fileInput2);
+
+	parseLine2 = strtok(firstLine2, ":");
+	parseLine2 = strtok(NULL, ":");
+	parseLine2 = strtok(NULL, ":");
+	printf("%s\n", parseLine2);
+
 	printf("Size of a line in file1: %d\n", lineSize1);
 	printf("Size of a line in file2: %d\n", lineSize2);
 
@@ -309,12 +309,16 @@ int main(int argc, char *argv[]) {
 	char line1[lineSize1+1], line2[lineSize2+1];
 
 	while(fgets(line1, sizeof(line1), fileInput1) != NULL){
+		if(line1[0] == '>')
+			break;
 		strcat(inputGenome1, line1);
 	}
 	removeAll(inputGenome1, '\r');
 	removeAll(inputGenome1, '\n');
 
 	while(fgets(line2, sizeof(line2), fileInput2) != NULL){
+		if(line1[0] == '>')
+			break;
 		strcat(inputGenome2, line2);
 	}
 	removeAll(inputGenome2, '\r');
@@ -344,7 +348,7 @@ int main(int argc, char *argv[]) {
 	lastTrace.score = maxAlign[0];
 	lastTrace.row = maxAlign[1];
 	lastTrace.col = maxAlign[2];
-	lastTrace.direction = 3;
+	lastTrace.sign = inputGenome2[lastTrace.row - 1];
 	lastTrace.next = NULL;
 	lastTrace.prev = NULL;
 
@@ -358,10 +362,35 @@ int main(int argc, char *argv[]) {
 		curTrace = *curTrace.next;
 		n++;
 	}
-	printf("%d. trace: score - %3d, row - %3d, column: %3d\n", n, curTrace.score, curTrace.row, curTrace.col);
+
+	char alignment[n-1];
+	curTrace = firstTrace;
+	n = 1;
+	while(curTrace.next != NULL){
+		alignment[n-1] = curTrace.sign;
+		printf("%c", curTrace.sign);
+		curTrace = *curTrace.next;
+		n++;
+	}
+	printf("\n");
+	printf("%s\n", alignment);
+
+	n=0;
+	int count = 0;
+	while(alignment[n] != '\0'){
+		if(alignment[n] != '-')
+			count++;
+		n++;
+	}
+
+	fprintf(fileOutput, "track name=%s\n", parseLine1);
+	fprintf(fileOutput, "##maf version=1\n\n");
+	fprintf(fileOutput, "a score=%d.0\n", lastTrace.score);
+	fprintf(fileOutput, "s %s %d %d + %d %s\n", parseLine2, firstTrace.row, count, sizeOfInputFile2, alignment);
 
 	fclose(fileInput1);
 	fclose(fileInput2);
+	fclose(fileOutput);
 
 	free(inputGenome1);
 	free(inputGenome2);

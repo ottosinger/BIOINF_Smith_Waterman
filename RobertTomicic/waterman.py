@@ -23,9 +23,9 @@ def traceback(table,globmax,x,y,row,row2):#main traceback function determining p
 	topLeftValue=0
 	# 4 IFs to determine existsing paths
         if( (table[i-1][j-1]+match==table[i][j])and(row[i]==row2[j]) ):#match path
-		topLeftValue=table[i-1][j-1];
+		topLeft=table[i-1][j-1];
 	if( (table[i-1][j-1]+missmatch==table[i][j])and(row[i]!=row2[j]) ):#missmatch path
-		topLeftValue=table[i-1][j-1];
+		topLeft=table[i-1][j-1];
         if(table[i-1][j]+insert==table[i][j]):#top path
 	    topValue=table[i-1][j];
         if(table[i][j-1]+delete==table[i][j]):#left path
@@ -46,6 +46,7 @@ def traceback(table,globmax,x,y,row,row2):#main traceback function determining p
     return result
 
 #unix read file
+end=0
 filename = sys.argv[-1]
 ii=0
 firstrow=[]
@@ -53,12 +54,19 @@ with open(filename) as fp:
     for line in fp:
         if ii!=0:
             for jj in range(len(line)):
+		if(line[0]=='>'):
+			end=1
+			break
                 if (line[jj] in {'A','C','T','G','U'}):
                     firstrow.append(line[jj])
 	else:
-	    name=line.split(' ')
-	    name=name[0][1:]	    
+	    name=line.split(':')
+	    name=name[2]	    
             ii+=1
+	if end==1: break
+fp.close()
+
+end=0
 filenamee = sys.argv[-2]
 ii=0
 secondrow=[]
@@ -66,13 +74,17 @@ with open(filenamee) as fp2:
     for line2 in fp2:
         if ii!=0:
             for jj in range(len(line2)):
+		if(line2[0]=='>'):
+			end=1
+			break
                 if (line2[jj] in {'A','C','T','G','U'}):
                     secondrow.append(line2[jj])
 	else:
-	    name2=line2.split(' ')
-	    name2=name2[0][1:]
+	    name2=line2.split(':')
+	    name2=name2[2]
             ii+=1
-
+	if end==1: break
+fp2.close()
 
 #fixed algorythm values
 delete=-10
@@ -113,12 +125,18 @@ for i in range(1,len(firstrow)):
 #start traceback on the table         
 rezz=traceback(table,globmax,maxx,maxy,firstrow,secondrow)
 starting=maxx+1-len(rezz)
+counter=0
+for i in range(len(rezz)):
+        if rezz[i] in ['A','C','G','T','U']:
+                counter+=1
 rezz="".join(rezz)
 #writeable(table,firstrow,secondrow)
 
 #print results
-print("##maf version=1")
-print("# "+name2)
-print("a score="+str(globmax)+".0")
-print("s "+name+" "+str(starting)+" "+str(len(rezz))+" + "+str(len(firstrow))+" "+str(rezz))
+f=open("results.maf",'w')
+f.write("track name="+name2+'\n')
+f.write("##maf version=1"+'\n')
+f.write("a score="+str(globmax)+".0"+'\n')
+f.write("s "+name+" "+str(starting)+" "+str(counter)+" + "+str(len(firstrow))+" "+str(rezz)+'\n')
+f.close()
 sys.exit()

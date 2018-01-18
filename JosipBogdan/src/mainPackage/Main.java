@@ -40,49 +40,57 @@ public class Main {
 	
 	public static void main(String [ ] args) throws IOException
 	{
-		int similarity = 0;
+		int similar = 0;
 		int delete = -1;
 		int insert = -1;
 		int match = 1;
 		int mismatch = -1;
 		int maxScore = 0;
-		int maxI = 0;
-		int maxJ = 0;
-
+		int maxX = 0;
+		int maxY = 0;
+			  
 		      char[] firstGenome = input("First");
+		      String tempStringOne = new String(firstGenome);
+		      tempStringOne.replaceAll("\\s+",""); //uklanjanje nepotrebnih znakova
+		      firstGenome = tempStringOne.toCharArray();
 
 		      char[] secondGenome = input("Second");
+		      String tempStringTwo = new String(secondGenome);
+		      tempStringTwo.replaceAll("\\s+",""); //uklanjanje nepotrebnih znakova
+		      secondGenome = tempStringTwo.toCharArray();
 		      
+		      System.out.println("");
 		      System.out.println(firstGenome);
 		      System.out.println(secondGenome);
 		      int a = firstGenome.length;
 		      int b = secondGenome.length;
-		      
+		      System.out.println("");
+
 		      int[][] hMatrix = new int[b+1][a+1];
-				for(int i=0; i<b+1; i++){ // punjenje prvog reda i stupca sa nulama
+				for(int i=0; i<b+1; i++){ 
 					for(int j=0; j<a+1; j++){
 						if (i==0 || j==0) {
-							hMatrix[i][j] = 0;
+							hMatrix[i][j] = 0; // punjenje prvog reda i stupca sa nulama
 						}
 					}
 				}
 				
-				for (int i=1; i<b+1; i++) { //kreiranje matrice i racunanje score-a
+				for (int i=1; i<b+1; i++) { //kreiranje matrice i racunanje score-a po jednadzbabama 6 i 7
 					for (int j=1; j<a+1; j++) {
-						if (firstGenome[j-1] == secondGenome[i-1]) {
-							similarity = match;
+						if (firstGenome[j-1] == secondGenome[i-1]) { // ako je doslo do podudaranja
+							similar = match;
 						}else {
-							similarity = mismatch;
+							similar = mismatch;
 						}
-						int diagonalValue = hMatrix[i-1][j-1] + similarity;
+						int diagonalValue = hMatrix[i-1][j-1] + similar; //racunanje diagonalne vrijednosti
 						int upValue = hMatrix[i-1][j] + insert;
 						int downValue = hMatrix[i][j-1] + delete;
 						
 						int score = Math.max(0, Math.max( diagonalValue,Math.max(upValue, downValue)));//racunanje najvece vrijednosti
 						if (score > maxScore) {
 							maxScore = score;
-							maxI = i-1;
-							maxJ = j-1;
+							maxX = i-1;
+							maxY = j-1;
 						}
 						hMatrix[i][j] = score;
 					}
@@ -95,7 +103,7 @@ public class Main {
 				System.out.println("\n");
 				System.out.print("S ");
 
-				for(int i = 0; i < b+1; i++) {
+				for(int i = 0; i < b+1; i++) { //Ispisivanje matrice
 					if (i!=0 && i != b+1) {
 						System.out.print(secondGenome[i-1] + " ");
 					}
@@ -104,32 +112,31 @@ public class Main {
 					}
 					System.out.println("\n");
 				}
-				System.out.println("Score:" + maxScore + "MaxX:" + maxI + "MaxY:" + maxJ);
+				System.out.println("Score:" + maxScore + "MaxX:" + maxX + "MaxY:" + maxY);
 				
 				List<Integer[]> elementList = new ArrayList<>();
-				
 				
 				Integer[] max = new Integer[4];
 				int weight[] = {match, mismatch, insert, delete};
 				max[0] = maxScore;
-				max[1] = maxI;
-				max[2] = maxJ;
+				max[1] = maxX;
+				max[2] = maxY;
 				max[3] = 10;
 				elementList.add(max);
 				
-				int x = maxI;
-				int y = maxJ;
+				int x = maxX;
+				int y = maxY;
 				
-				String previousElement = NextMove(hMatrix, x+1, y+1, weight);
-				while(previousElement != "stop" && previousElement != "invalid move") {
-					if (previousElement == "diagonalMatch" || previousElement == "diagonalMismatch") {
+				String prevElement = NextMove(hMatrix, x+1, y+1, weight);
+				while(prevElement != "stop" && prevElement != "invalid move") {
+					if (prevElement == "diagonalMatch" || prevElement == "diagonalMismatch") {
 						Integer[] temp = new Integer[4];
 						temp[0] = hMatrix[x+1 - 1][y+1 - 1];
 						temp[1] = x-1;
 						temp[2] = y-1;
 						temp[3] = 0;
 						
-						if (previousElement == "diagonalMatch") {
+						if (prevElement == "diagonalMatch") {
 							temp[3] = 10;
 						}else {
 							temp[3] = 11;
@@ -139,7 +146,7 @@ public class Main {
 						y--;
 						
 					}else {
-						if (previousElement == "up") {
+						if (prevElement == "up") {
 							Integer[] temp = new Integer[4];
 							temp[0] = hMatrix[x+1 - 1][y+1];
 							temp[1] = x-1;
@@ -148,7 +155,7 @@ public class Main {
 							elementList.add(temp);
 							x--;
 						}else {
-							if (previousElement == "left") {
+							if (prevElement == "left") {
 								Integer[] temp = new Integer[4];
 								temp[0] = hMatrix[x+1][y+1 - 1];
 								temp[1] = x;
@@ -161,7 +168,7 @@ public class Main {
 							}
 						}
 					}
-					previousElement = NextMove(hMatrix,x+1, y+1, weight);
+					prevElement = NextMove(hMatrix,x+1, y+1, weight);
 				}
 				
 				if (firstGenome[elementList.get(elementList.size() - 1)[2]] != secondGenome[elementList.get(elementList.size() - 1)[1]]) {
@@ -187,7 +194,7 @@ public class Main {
 				write(str);
 	}
 	
-	public static void write(String str) 
+	public static void write(String str) // stvaranje tekstualnog dokumenta sa konacnim rezultatima
 			  throws IOException {
 			    PrintWriter writer = new PrintWriter("result.txt");
 			    writer.write(str);
@@ -266,7 +273,7 @@ public class Main {
 		}
 	}
 	
-	static String readFile(Path path, Charset encoding) 
+	static String readFile(Path path, Charset encoding)  //citanje iz datoteke
 			  throws IOException 
 	{
 		byte[] encoded = Files.readAllBytes(path);
