@@ -12,14 +12,30 @@ namespace SmithWaterman
     {
         static void Main(string[] args)
         {
-            int match = 10;
-            int mismatch = -9;
-            int insertion = -10;
-            int deletion = -10;
+            //parameters for actions
+            int match = 1;
+            int mismatch = -1;
+            int insertion = -1;
+            int deletion = -1;
             int[] weight = { match, mismatch, insertion, deletion };
 
-            string[] bothFiles = ReadFiles();
+            //choose source for genome files
+            string[] bothFiles = { };
+            if (args.Length > 0)
+            {
+                bothFiles = ReadFilesArg(args[0], args[1]);
+                Console.WriteLine("Reading from arguments.\n");
+            }
+            else
+            {
+                Console.WriteLine("Reading hardcoded.\n");
+                bothFiles = ReadFiles();
+            }
+
             //PrintFiles(bothFiles);
+
+            string nameOfFirstGenome = getNameOfGenome(bothFiles[0]);
+            string nameOfSecondGenome = getNameOfGenome(bothFiles[1]);
 
             string firstGenome = ParseFile(bothFiles[0]);
             string secondGenome = ParseFile(bothFiles[1]);
@@ -32,11 +48,13 @@ namespace SmithWaterman
             Console.WriteLine("length of 2nd genome main programme: " + secondGenome.Length);
             //PrintNucleotidesOfGenome(secondGenome);
 
-
+            
+            //build a matrix, fill with zeros
             int[,] InitialMatrix = InitiateMatrix(firstGenome, secondGenome);
 
             PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
+            //build a weighted matrix, return coordinates and value of max score
             int[] maxKnowledge = CalculateMatrix(firstGenome, secondGenome, InitialMatrix, weight);
             int maxScore = maxKnowledge[0];
             int maxI = maxKnowledge[1];
@@ -44,18 +62,17 @@ namespace SmithWaterman
 
             PrintMatrix(firstGenome.Length, secondGenome.Length, InitialMatrix, firstGenome, secondGenome);
 
+            //get reversed path with values, coordinates and route
             List<int[]> jea = Traceback(InitialMatrix, maxKnowledge, weight);
             //array has 4 values: {element score, element x value, element y value, direction (ACTION) of move from 
             //previous [actually later one in reverse list] (10-diagonal-match_PREPISI, 11-diagonal missmatch_SAMO DRUGI NAPISI,
             //2 -left-deletion_OBRISI, 3-up-insertion_crtica)}
-
-
-
+            
+            //clensing the list of possible non-matching nucleus
             if (firstGenome[jea.Last()[2]] != secondGenome[jea.Last()[1]])
             {
                 jea.Remove(jea.Last());
             }
-
             jea.Reverse();
 
             
@@ -67,7 +84,24 @@ namespace SmithWaterman
 
             string alignmentString = getAlignmentString(jea, firstGenome, secondGenome);
 
+            Console.WriteLine("Alignment string: " + alignmentString + "\n");
 
+            //build output format
+            string output3 = "s " + nameOfSecondGenome.PadRight(10) + startOfAlignmentFirstGenome.ToString().PadLeft(10) 
+                + alignmentString.Length.ToString().PadLeft(5) + " + " + firstGenome.Length.ToString().PadRight(10) + "  " + alignmentString;
+            string output2 = "a score= " + maxScore;
+            string output1 = "# " + nameOfFirstGenome + "\n";
+
+            //write results on console
+            Console.WriteLine(output1);
+            Console.WriteLine(output2);
+            Console.WriteLine(output3);
+
+            //write results to .maf file
+            string[] linesForMafOutput = { output1, "" ,output2, output3 };
+            System.IO.File.WriteAllLines(@"C:\Users\ottos\Desktop\Output.maf", linesForMafOutput);
+
+            Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
 
@@ -79,6 +113,14 @@ namespace SmithWaterman
         {
             string firstFile = System.IO.File.ReadAllText(@"C:\Users\ottos\Downloads\Chrome\testni1.fa");
             string secondFile = System.IO.File.ReadAllText(@"C:\Users\ottos\Downloads\Chrome\testni2.fa");
+            string[] bothFiles = { firstFile, secondFile };
+            return bothFiles;
+        }
+
+        public static string[] ReadFilesArg(string arg1, string arg2)
+        {
+            string firstFile = System.IO.File.ReadAllText(arg1);
+            string secondFile = System.IO.File.ReadAllText(arg2);
             string[] bothFiles = { firstFile, secondFile };
             return bothFiles;
         }
@@ -287,7 +329,7 @@ namespace SmithWaterman
             
             string previousElement = NextMove(Matrix , x+1, y+1, weight);// ove plus jedinice na x i y su zbog prvog reda i stupca nula pa je sve u banani sa indexima
 
-            while (previousElement != "stop" && previousElement != "invalid move")
+            while (previousElement != "stop" && previousElement != "stop-zeros")
             {
                 if (previousElement == "diagonal-match" || previousElement == "diagonal-mismatch")
                 {
@@ -348,58 +390,72 @@ namespace SmithWaterman
 
             int current = Matrix[x, y];
 
-            if (diagonal + match == current || diagonal + mismatch == current)//diagonal >= up && diagonal >= left
+            if (diagonal == 0 && left == 0 && up == 0)
+                return "stop-zeros";
+            
+            if (diagonal >= up && diagonal >= left)
             {
-                if (diagonal != 0)
+                if (diagonal + match == current)
                 {
-                    if (diagonal + match == current)
-                    {
-                        return "diagonal-match";
-                    }
-                    else //(diagonal + mismatch == current)
+                    return "diagonal-match";
+                }
+                else
+                {
+                    if (diagonal + mismatch == current)
                     {
                         return "diagonal-mismatch";
                     }
-                    //OVI PODUVJETI GORE ZAMIJENILI OVAJ DOLJE
-                    //return "diagonal";
-                }
-                else
-                {
-                    return "stop";
                 }
             }
-            else
+            
+            if (up >= diagonal && up >= left)
             {
-                if (up + insertion == current)//up >= diagonal && up >= left
+                if (up + insertion == current)
                 {
-                    if (up != 0)
-                    {
-                        return "up";
-                    }
-                    else
-                    {
-                        return "stop";
-                    }
-                }
-                else
-                {
-                    if (left + deletion == current)//left >= diagonal && left >= up
-                    {
-                        if (up != 0)
-                        {
-                            return "left";
-                        }
-                        else
-                        {
-                            return "stop";
-                        }
-                    }
-                    else
-                    {
-                        return "invalid move";
-                    }
+                    return "up";
                 }
             }
+                
+            if (left >= diagonal && left >= up)
+            {
+                if (left + deletion == current)
+                {
+                    return "left";
+                }
+            }
+
+            return "stop";
+        
+            //if (diagonal + match == current || diagonal + mismatch == current)//diagonal >= up && diagonal >= left
+            //{
+            //    if (diagonal + match == current)
+            //     {
+            //        return "diagonal-match";
+            //    }
+            //    else //(diagonal + mismatch == current)
+            //    {
+            //        return "diagonal-mismatch";
+            //     } 
+            //}
+            //else
+            //{
+            //    if (up + insertion == current)//up >= diagonal && up >= left
+            //    {
+            //        return "up";
+            //    }
+            //    else
+            //    {
+            //        if (left + deletion == current)//left >= diagonal && left >= up
+            //        {
+            //            return "left";
+            //        }
+            //        else
+            //        {
+            //            return "invalid move";
+            //        }
+            //    }
+            //}
+            
         }
 
 
@@ -442,6 +498,19 @@ namespace SmithWaterman
                 }
             }//foreach
             return alignment;
+        }
+
+
+        public static string getNameOfGenome(string myFile)
+        {
+            string nameDirty = Regex.Match(myFile, "([^\\s]+)").Value;
+            string name = "";
+            for (int i = 0; i < nameDirty.Length; i++)
+            {
+                if (i != 0)
+                    name += nameDirty[i].ToString();
+            }
+            return name;
         }
 
 
