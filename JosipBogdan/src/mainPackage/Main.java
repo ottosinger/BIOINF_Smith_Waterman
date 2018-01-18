@@ -17,6 +17,8 @@ import java.io.PrintWriter;
 public class Main {
 	static String firstFileName;
 	static String secondFileName;
+	private static final long MEGABYTE = 1024L * 1024L;
+
 	public static char[] input(String str) throws IOException{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Enter" + " " + str + " " + "Genome File name");
@@ -58,10 +60,10 @@ public class Main {
 		      String tempStringTwo = new String(secondGenome);
 		      tempStringTwo.replaceAll("\\s+",""); //uklanjanje nepotrebnih znakova
 		      secondGenome = tempStringTwo.toCharArray();
-		      
-		      System.out.println("");
-		      System.out.println(firstGenome);
-		      System.out.println(secondGenome);
+		      calculateUsedMemory();
+		      //System.out.println("");
+		      //System.out.println(firstGenome.length);
+		      ////System.out.println(secondGenome.length);
 		      int a = firstGenome.length;
 		      int b = secondGenome.length;
 		      System.out.println("");
@@ -103,15 +105,15 @@ public class Main {
 				System.out.println("\n");
 				System.out.print("S ");
 
-				for(int i = 0; i < b+1; i++) { //Ispisivanje matrice
-					if (i!=0 && i != b+1) {
-						System.out.print(secondGenome[i-1] + " ");
-					}
-					for (int j = 0; j<a+1; j++) {
-						System.out.print(hMatrix[i][j] + " ");
-					}
-					System.out.println("\n");
-				}
+				//for(int i = 0; i < b+1; i++) { //Ispisivanje matrice
+					//if (i!=0 && i != b+1) {
+					//	System.out.print(secondGenome[i-1] + " ");
+					//}
+					//for (int j = 0; j<a+1; j++) {
+					//	System.out.print(hMatrix[i][j] + " ");
+					//}
+					//System.out.println("\n");
+				//}
 				System.out.println("Score:" + maxScore + "MaxX:" + maxX + "MaxY:" + maxY);
 				
 				List<Integer[]> elementList = new ArrayList<>();
@@ -128,7 +130,7 @@ public class Main {
 				int y = maxY;
 				
 				String prevElement = NextMove(hMatrix, x+1, y+1, weight);
-				while(prevElement != "stop" && prevElement != "invalid move") {
+				while(prevElement != "stop" && prevElement != "stopZero") {
 					if (prevElement == "diagonalMatch" || prevElement == "diagonalMismatch") {
 						Integer[] temp = new Integer[4];
 						temp[0] = hMatrix[x+1 - 1][y+1 - 1];
@@ -192,6 +194,7 @@ public class Main {
 				str += System.lineSeparator();
 				str += "s " + secondFileName + " " + secondGenomeAlingStart + " " + b + " " + secondGenomeAlignEnd + " " + alignStr; 
 				write(str);
+				
 	}
 	
 	public static void write(String str) // stvaranje tekstualnog dokumenta sa konacnim rezultatima
@@ -228,6 +231,28 @@ public class Main {
 		}
 		return align;
 	}
+	public static boolean flag = true;
+	public static void calculateUsedMemory() {
+		Thread thread = new Thread(new Runnable() {
+			public void run() {
+				while(flag) {
+			       Runtime runtime = Runtime.getRuntime();
+			        // Run the garbage collector
+			        runtime.gc();
+			        // Calculate the used memory
+			        long memory = runtime.totalMemory() - runtime.freeMemory();
+			        System.out.println("Used memory is bytes: " + memory);
+
+			        try {
+				        Thread.sleep(500);
+			        }catch(Exception e) {
+			        	e.printStackTrace();
+			        }
+				}
+			}
+		});
+		thread.start();
+	}
 	
 	public static String NextMove(int Matrix[][], int x, int y, int weight[]) {
 		int match = weight[0];
@@ -241,36 +266,31 @@ public class Main {
 		
 		int current = Matrix[x][y];
 		
-		if (diagonal + match == current || diagonal + mismatch == current) {
-			if (diagonal != 0){
-				if (diagonal + match == current) {
-					return "diagonalMatch";
-				}else {
+		if (diagonal == 0 && left == 0 && up == 0) {
+			return "stopZero";
+		}
+		
+		if (diagonal >= up && diagonal >= left) {
+			if (diagonal + match == current){
+				return "diagonalMatch";
+			}else {
+				if (diagonal + mismatch == current) {
 					return "diagonalMismatch";
-				}
-			}else {
-				return "stop";
-			}
-			
-		}else {
-			if (up + insertion == current) {
-				if (up != 0) {
-					return "up";
-				}else {
-					return "stop";
-				}
-			}else {
-				if (left + deletion == current) {
-					if (up != 0) {
-						return "left";
-					}else {
-						return "stop";
-					}
-				}else {
-					return "invalid move";
 				}
 			}
 		}
+		
+		if (up >= diagonal && left >= up) {
+			if (up + insertion == current) {
+				return "up";
+			}
+		}
+		if (left >= diagonal && left >= up) {
+			if (left + deletion == current) {
+			return "left";
+			}
+		}
+		return "stop";
 	}
 	
 	static String readFile(Path path, Charset encoding)  //citanje iz datoteke
@@ -279,7 +299,9 @@ public class Main {
 		byte[] encoded = Files.readAllBytes(path);
 		return new String(encoded, encoding);
 	}
-	
+	public static long bytesToMegabytes(long bytes) {
+	    return bytes / MEGABYTE;
+	}
 	
 	
 }
