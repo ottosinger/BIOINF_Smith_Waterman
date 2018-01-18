@@ -125,6 +125,10 @@ for i in range(1,len(firstrow)):
 #start traceback on the table         
 rezz=traceback(table,globmax,maxx,maxy,firstrow,secondrow)
 starting=maxx+1-len(rezz)
+counter=0
+for i in range(len(rezz)):
+        if rezz[i] in ['A','C','G','T','U']:
+                counter+=1
 rezz="".join(rezz)
 #writeable(table,firstrow,secondrow)
 
@@ -133,6 +137,6 @@ f=open("results.maf",'w')
 f.write("track name="+name2+'\n')
 f.write("##maf version=1"+'\n')
 f.write("a score="+str(globmax)+".0"+'\n')
-f.write("s "+name+" "+str(starting)+" "+str(len(rezz))+" + "+str(len(firstrow))+" "+str(rezz)+'\n')
+f.write("s "+name+" "+str(starting)+" "+str(counter)+" + "+str(len(firstrow))+" "+str(rezz)+'\n')
 f.close()
 sys.exit()
