@@ -1,0 +1,11 @@
+Niz od 120 znakova se izvodio <10 milisekundi, utrosenost memorije 20 kB.
+Niz od 300 znakova se izvodio <10 milisekundi, utrosenost memorije 26 kB.
+Niz od 420 znakova se izvodio 10 milisekundi, utrosenost memorije 30.5 kB.
+Niz od 600 znakova se izvodio 20 milisekundi, utrosenost memorije 37 kB.
+Niz od 720 znakova se izvodio 20 milisekundi, utrosenost memorije je 42 kB.
+Niz od 840 znakova se izvodio 30 milisekundi, utrosenost memorije je 46 kB.
+Niz od 960 znakova se izvodio 40 milisekundi, utrosenost memorije je 50 kB.
+Niz od 1140 znakova se izvodio 50 milisekundi, utrosenost memorije je 57 kB.
+Niz od 1260 znakova se izvodio 60 milisekundi, utrosenost memorije je 62 kB.
+Niz od 1440 znakova se izvodio 80 milisekundi, utrosenost memorije je 68 kB.
+Niz od 1620 znakova se nije uspio izvrsiti na racunalu zbog preopterecenja procesora.

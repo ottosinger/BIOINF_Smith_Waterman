@@ -9,12 +9,13 @@
 
 // Double linked list which holds data for each trace - value inside the cell, row, column and nucleobase
 
+typedef struct trace trace;
+
 struct trace{
 	int score, row, col;
 	char sign;
 	trace *next;
 	trace *prev;
-
 };
 
 
@@ -204,7 +205,7 @@ int* fillMatrix(int* matrix, int rows, int cols, int wMatch, int wMismatch, int 
 				matrix[i * cols + j] = matrix[(i-1) * cols + (j-1)] + wMatch;
 			} else {
 				// Ternary operator that decides will we get the biggest value from mismatch, deletion or insertion, and returns, accordingly, 0, 1, 2
-				direction = ((diagonal + wMismatch) >= (up + wInsertion)) ? (((diagonal + wMismatch) >= (left + wDeletion)) ? 0 : 2) : (((up + wInsertion) >= (left + wDeletion)) ? 1 : 2 );
+				direction = ((matrix[(i-1) * cols + j-1] + wMismatch) >= (matrix[(i-1) * cols + j] + wInsertion)) ? (((matrix[(i-1) * cols + j-1] + wMismatch) >= (matrix[i * cols + j-1] + wDeletion)) ? 0 : 2) : (((matrix[(i-1) * cols + j] + wInsertion) >= (matrix[i * cols + j-1] + wDeletion)) ? 1 : 2 );
 				// If the biggest value is from mismatch, calculate it's value and put it to matrix
 				if (direction == 0)
 					matrix[i * cols + j] = roundToZero(matrix[(i-1) * cols + (j-1)], wMismatch);
